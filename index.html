@@ -1,13 +1,53 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>ケルビンダブルブリッジ</title>
+<style>
+  :root{color-scheme:dark;--bg:#05080d;--panel:#08131f;--line:#6d88a3;--muted:#2d465d;--txt:#eef7ff;--sub:#9fb2c5;--blue:#54a8ff;--green:#7fe7c5;--yellow:#ffd166;--red:#ff6b8a;}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(900px 700px at 50% -120px,#183653,#07101a 55%,#04070c);color:var(--txt);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;}
+  .app{min-height:100dvh;padding:14px;max-width:1100px;margin:0 auto}.head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;margin-bottom:12px}.title{margin:0;font-size:clamp(22px,6vw,38px);line-height:1.05}.desc{margin:6px 0 0;color:var(--sub);font-size:13px;line-height:1.55}.badge{border:1px solid #2e4965;border-radius:999px;padding:7px 11px;color:#a9d4ff;background:#071523;font-weight:800;white-space:nowrap}.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.8fr);gap:12px}.card{background:rgba(7,15,25,.82);border:1px solid #243a52;border-radius:22px;box-shadow:0 22px 70px rgba(0,0,0,.3);overflow:hidden}.diagram{padding:8px}.side{padding:16px;display:flex;flex-direction:column;gap:12px}.stepTitle{margin:0;font-size:21px}.lead{margin:0;color:#d3e2ef;line-height:1.75;font-size:15px}.formula{min-height:48px;border:1px solid #345270;border-radius:16px;background:#071827;display:flex;align-items:center;justify-content:center;font:800 22px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--yellow)}.formula.empty{font:700 13px system-ui;color:#687b91}ul{margin:0;padding-left:20px;color:#b6c7d7;line-height:1.8;font-size:14px}.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:auto}button{border:1px solid #2f4a64;border-radius:14px;background:#0b1826;color:#dff2ff;padding:11px 14px;font-weight:850;cursor:pointer;min-height:44px;font-size:15px}button.primary{background:#1b6cff;border-color:#5d9dff}button:disabled{opacity:.35}.chips{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}.chip{font-size:12px;min-height:42px;padding:7px 4px;color:#8ca4ba}.chip.on{border-color:var(--green);background:#0d2a2a;color:#dcfff4}.progress{height:6px;border-radius:999px;background:#122437;overflow:hidden;margin-top:12px}.bar{height:100%;width:16.6%;background:linear-gradient(90deg,var(--green),var(--blue),var(--yellow));transition:width .15s ease}.circuit{width:100%;height:auto;display:block}.wire{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.wire.muted{stroke:var(--muted);stroke-width:5}.bridge,.auxWire,.gWire{fill:none;stroke:#7996b0;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.auxWire{stroke:#4fb6ff;stroke-width:6}.gWire{stroke:#b98cff;stroke-width:5}.part{fill:#102034;stroke:#47627c;stroke-width:3}.rx{fill:#2b1d18;stroke:#ff8a65}.r{fill:#381b24;stroke:#ff5c8a}.rs{fill:#182a20;stroke:#7fe7a1}.aux{fill:#102c35;stroke:#54d4ff}.label{fill:#f2fbff;font-weight:900;font-size:30px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.label.small{font-size:24px}.label.big{font-size:32px}.smallLabel{fill:#9db2c5;font-size:20px;font-weight:800}.sectionLabel{fill:#b8cbde;font-size:22px;font-weight:900}.callout{fill:#73d7ff;font-size:20px;font-weight:900}.node{fill:#cfeaff;stroke:#06101b;stroke-width:4}.source{fill:#0d1f30;stroke:#83b7e7;stroke-width:4}.meter{fill:#171125;stroke:#d6a1ff;stroke-width:4}.soft{opacity:.22}.active{opacity:1;filter:url(#glow)}.hidden{opacity:0}.shown{opacity:1}.note{margin-top:10px;color:#7890a8;font-size:12px;line-height:1.6}@media(max-width:850px){.app{padding:10px}.head{align-items:flex-start;flex-direction:column}.grid{grid-template-columns:1fr}.side{padding:14px}.chips{grid-template-columns:repeat(3,1fr)}.chip{font-size:11px}.lead,ul{font-size:14px}.diagram{padding:4px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="head"><div><h1 class="title">ケルビンダブルブリッジ</h1><p class="desc">自動再生なし。回路図は固定。ボタンで強調箇所だけ切り替え。</p></div><div class="badge" id="badge">Step 1 / 6</div></header>
+  <section class="grid">
+    <div class="card diagram">
+      <svg viewBox="0 0 920 560" class="circuit" aria-label="Kelvin double bridge circuit">
+        <defs><filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="panelGrad" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#122335"/><stop offset="1" stop-color="#07101b"/></linearGradient></defs>
+        <rect x="24" y="24" width="872" height="512" rx="26" fill="url(#panelGrad)" stroke="#26435d"/>
+        <path class="wire" d="M120 120 H790 V440 H120 Z"/><path class="wire muted" d="M120 120 V440"/><path class="wire muted" d="M790 120 V440"/>
+        <circle cx="120" cy="280" r="38" class="source"/><text x="120" y="287" text-anchor="middle" class="label big">E</text><text x="84" y="220" class="smallLabel">電源</text>
+        <g data-group="ratio g result"><line x1="220" y1="120" x2="220" y2="440" class="bridge"/><rect x="178" y="170" width="84" height="58" rx="14" class="part"/><text x="220" y="207" text-anchor="middle" class="label">P</text><rect x="178" y="322" width="84" height="58" rx="14" class="part"/><text x="220" y="359" text-anchor="middle" class="label">Q</text><circle cx="220" cy="276" r="7" class="node"/><text x="144" y="104" class="sectionLabel">比率腕</text></g>
+        <g data-group="r result"><rect x="352" y="411" width="118" height="58" rx="14" class="part rx"/><text x="411" y="448" text-anchor="middle" class="label">Rx</text></g>
+        <g data-group="r pq ratio"><rect x="500" y="411" width="82" height="58" rx="14" class="part r"/><text x="541" y="448" text-anchor="middle" class="label">r</text></g>
+        <g data-group="result"><rect x="612" y="411" width="118" height="58" rx="14" class="part rs"/><text x="671" y="448" text-anchor="middle" class="label">Rs</text></g>
+        <text x="426" y="506" text-anchor="middle" class="smallLabel">未知抵抗</text><text x="672" y="506" text-anchor="middle" class="smallLabel">標準抵抗</text>
+        <g data-group="pq g ratio"><path d="M500 440 C500 308 582 308 582 440" class="auxWire"/><rect x="478" y="292" width="64" height="48" rx="13" class="part aux"/><text x="510" y="323" text-anchor="middle" class="label small">p</text><rect x="540" y="292" width="64" height="48" rx="13" class="part aux"/><text x="572" y="323" text-anchor="middle" class="label small">q</text><circle cx="541" cy="316" r="7" class="node"/><text x="506" y="265" class="callout">r の両端をまたぐ</text></g>
+        <g data-group="g ratio"><path d="M220 276 H380 C410 276 410 316 438 316 H541" class="gWire"/><circle cx="394" cy="276" r="30" class="meter"/><text x="394" y="285" text-anchor="middle" class="label">G</text></g>
+        <g id="resultBadge" class="hidden"><rect x="574" y="104" width="240" height="72" rx="18" fill="#1e2f46" stroke="#ffd166"/><text x="694" y="135" text-anchor="middle" class="smallLabel">平衡条件</text><text x="694" y="162" text-anchor="middle" class="label small" fill="#ffd166">Rx = Rs × P/Q</text></g>
+        <g id="ratioBadge" class="hidden"><rect x="580" y="186" width="224" height="58" rx="16" fill="#11263c" stroke="#54a8ff"/><text x="692" y="223" text-anchor="middle" class="label small" fill="#ffd166">P/Q = p/q</text></g>
+      </svg>
+    </div>
+    <aside class="card side"><h2 class="stepTitle" id="stepTitle"></h2><p class="lead" id="lead"></p><div class="formula empty" id="formula"></div><ul id="points"></ul><div class="controls"><button id="first">最初</button><button id="prev">戻る</button><button class="primary" id="next">次へ</button></div></aside>
+  </section>
+  <div class="progress"><div class="bar" id="bar"></div></div><nav class="chips" id="chips"></nav>
+  <p class="note">これはViteもStackBlitzの起動も使わない単体ページです。</p>
+</main>
+<script>
+const steps=[
+{title:'全体像',focus:'all',lead:'回路を常に表示したまま、強調だけを切り替えます。自動で文字は消えません。',points:['E で閉回路にする','P,Q は上側の比率腕','Rx-r-Rs は下側の主枝','p,q は r の両端をまたぐ補助腕'],formula:''},
+{title:'問題点：r が混ざる',focus:'r',lead:'低抵抗測定では、接続部の抵抗 r が無視できません。普通に測ると Rx だけを取り出せません。',points:['r は Rx と Rs の間にある','r を物理的に消す話ではない','G の接続点を工夫して、式から消す'],formula:''},
+{title:'p,q の役割',focus:'pq',lead:'p,q は r に直列に足す部品ではなく、r の両端をまたいで中間点を作る部品です。',points:['p は上側','q は下側','p,q の中点を G へつなぐ'],formula:''},
+{title:'G=0 の意味',focus:'g',lead:'検流計 G が 0 なら、左右の接続点の電位が等しいという意味です。',points:['電流が G に流れない','左の中点と右の中点が同電位','ここで平衡条件が使える'],formula:'V_G = 0'},
+{title:'比をそろえる',focus:'ratio',lead:'P,Q と p,q の比をそろえると、r の影響を同じ割合で拾えます。',points:['上側の比率腕と補助腕を同じ比にする','r の電圧降下を左右で同じ形に入れる','その結果、平衡式で r の項が消える'],formula:'P/Q = p/q'},
+{title:'結果',focus:'result',lead:'平衡していて、さらに比がそろっていれば、求めたい低抵抗は標準抵抗と比率腕だけで決まります。',points:['r は測定対象から外れる','Rx は Rs と P/Q で決まる','これがケルビンダブルブリッジの狙い'],formula:'Rx = Rs × P/Q'}];
+let step=0;const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const chips=$('#chips');steps.forEach((s,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=(i+1)+'. '+s.title;b.onclick=()=>{step=i;render()};chips.appendChild(b)});
+function render(){const s=steps[step];$('#badge').textContent='Step '+(step+1)+' / '+steps.length;$('#stepTitle').textContent=s.title;$('#lead').textContent=s.lead;$('#formula').textContent=s.formula||'式はこのステップでは出さない';$('#formula').className=s.formula?'formula':'formula empty';$('#points').innerHTML=s.points.map(p=>'<li>'+p+'</li>').join('');$('#bar').style.width=((step+1)/steps.length*100)+'%';$$('.chip').forEach((b,i)=>b.classList.toggle('on',i===step));$$('[data-group]').forEach(g=>{const list=g.dataset.group.split(' ');g.classList.toggle('active',s.focus==='all'||list.includes(s.focus));g.classList.toggle('soft',!(s.focus==='all'||list.includes(s.focus)))});$('#resultBadge').className=s.focus==='result'?'shown':'hidden';$('#ratioBadge').className=s.focus==='ratio'?'shown':'hidden';$('#prev').disabled=step===0;$('#next').disabled=step===steps.length-1}
+$('#first').onclick=()=>{step=0;render()};$('#prev').onclick=()=>{step=Math.max(0,step-1);render()};$('#next').onclick=()=>{step=Math.min(steps.length-1,step+1);render()};render();
+</script>
+</body>
 </html>
-
