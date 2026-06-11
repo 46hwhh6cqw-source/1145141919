@@ -1,6 +1,6 @@
 # NEON NYA SURVIVOR
 
-ルーレットとは無関係の、iPhone Safari / PCブラウザ向けCanvasゲームです。
+ルーレットとは無関係の、iPhone Safari向けCanvasゲームです。
 
 ## 配置場所
 
@@ -27,7 +27,7 @@ Settings → Pages → Source: Deploy from a branch → Branch: main → Folder:
 - iPhone: 指ドラッグで移動
 - 右下DASH: 回避
 - 攻撃: 自動
-- PC: WASD / 矢印 + Space
+- レベルアップ時: 強化カードをタップ
 
 ## iPhoneでアプリっぽく使う
 
