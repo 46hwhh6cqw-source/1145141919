@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>RLC回路と共振 — 直列・並列</title>
+<style>
+  html, body { margin: 0; background: #0E1116; }
+  #root { min-height: 100vh; }
+  .boot { color: #8B97A5; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 24px; }
+</style>
+</head>
+<body>
+  <div id="root"><div class="boot">読み込み中… (RLC lab)</div></div>
+
+  <!-- React 18 (UMD globals) + Babel standalone -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    // Single source of truth: the same component file used in AI Studio (ChargeFlow.jsx).
+    // We fetch it, strip its ESM import/export, transpile JSX in-browser and mount it.
+    (async () => {
+      const mount = document.getElementById("root");
+      try {
+        const raw = await (await fetch("./ChargeFlow.jsx", { cache: "no-cache" })).text();
+        const body = raw
+          .replace(/import\s+\{[^}]*\}\s+from\s+["']react["'];?/, "")
+          .replace(/export\s+default\s+function\s+ChargeFlow/, "function ChargeFlow");
+        const src =
+          "const {useState,useRef,useReducer,useEffect}=React;\n" +
+          body +
+          "\nreturn ChargeFlow;";
+        const out = Babel.transform(src, { presets: ["react"] }).code;
+        const ChargeFlow = new Function("React", out)(React);
+        ReactDOM.createRoot(mount).render(React.createElement(ChargeFlow));
+      } catch (e) {
+        mount.innerHTML =
+          '<div class="boot">読み込みに失敗しました（このページはローカルの file:// では動きません。' +
+          'GitHub Pages などの http(s) 経由で開いてください）。<br>' +
+          String(e) + "</div>";
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>
