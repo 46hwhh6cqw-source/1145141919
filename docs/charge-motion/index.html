@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>電荷の動き 可視化ミニ教材</title>
+<style>
+  :root{
+    --bg:#0f1320;
+    --panel:#171d2c;
+    --panel2:#20283a;
+    --text:#eef3ff;
+    --muted:#aab6d3;
+    --line:#5f6f95;
+    --wire:#8fa0c7;
+    --wire2:#44516d;
+    --accent:#ffd166;
+    --electron:#71c7ff;
+    --conv:#ff9f6e;
+    --field:#ffe873;
+    --good:#8cffc1;
+    --danger:#ff758f;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 30% 10%, rgba(91,122,255,.16), transparent 32rem),
+      linear-gradient(180deg,#0b0f1a 0%, var(--bg) 100%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+  }
+  .wrap{
+    max-width:1120px;
+    margin:0 auto;
+    padding:18px 14px 28px;
+  }
+  header{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  h1{
+    font-size:clamp(20px,4vw,32px);
+    margin:0 0 6px;
+    letter-spacing:.02em;
+  }
+  .sub{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+  }
+  .badge{
+    font-size:12px;
+    color:#0b0f1a;
+    background:var(--accent);
+    border-radius:999px;
+    padding:6px 10px;
+    white-space:nowrap;
+    font-weight:700;
+    margin-top:4px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);
+    gap:14px;
+  }
+  @media(max-width:860px){
+    .grid{grid-template-columns:1fr}
+    header{display:block}
+    .badge{display:inline-block;margin-top:10px}
+  }
+  .card{
+    background:rgba(23,29,44,.88);
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:18px;
+    box-shadow:0 14px 40px rgba(0,0,0,.25);
+    overflow:hidden;
+  }
+  .canvasBox{
+    position:relative;
+    padding:10px;
+  }
+  canvas{
+    width:100%;
+    height:auto;
+    aspect-ratio: 16/9;
+    display:block;
+    border-radius:14px;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(255,255,255,.06), transparent 18rem),
+      linear-gradient(180deg,#11182a,#0d1322);
+  }
+  .hintOverlay{
+    position:absolute;
+    left:24px; right:24px; bottom:24px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    pointer-events:none;
+  }
+  .pill{
+    background:rgba(5,8,15,.74);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:999px;
+    padding:7px 10px;
+    font-size:12px;
+    color:var(--muted);
+    backdrop-filter: blur(8px);
+  }
+  .pill strong{color:var(--text)}
+  .controls{
+    padding:12px;
+    display:grid;
+    gap:10px;
+    background:rgba(9,13,23,.38);
+    border-top:1px solid rgba(255,255,255,.08);
+  }
+  .row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  button{
+    border:0;
+    color:var(--text);
+    background:var(--panel2);
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:12px;
+    padding:10px 12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.12s transform,.12s background;
+  }
+  button:hover{background:#2a344c}
+  button:active{transform:scale(.98)}
+  button.primary{
+    background:linear-gradient(135deg,#3f63ff,#7a5cff);
+    border-color:rgba(255,255,255,.16);
+  }
+  .toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 10px;
+    border-radius:12px;
+    background:rgba(255,255,255,.05);
+    color:var(--muted);
+    font-size:13px;
+    user-select:none;
+  }
+  .toggle input{accent-color:#7a8cff}
+  label.range{
+    display:grid;
+    grid-template-columns:80px 1fr 42px;
+    gap:10px;
+    align-items:center;
+    color:var(--muted);
+    font-size:13px;
+    width:100%;
+  }
+  input[type="range"]{width:100%;accent-color:#7a8cff}
+  .side{
+    padding:16px;
+    display:grid;
+    gap:12px;
+  }
+  .stage{
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    padding:14px;
+  }
+  .stage h2{
+    margin:0 0 8px;
+    font-size:18px;
+  }
+  .stage p{
+    margin:0;
+    color:var(--muted);
+    line-height:1.65;
+    font-size:14px;
+  }
+  .meters{
+    display:grid;
+    gap:10px;
+  }
+  .meter{
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    padding:11px;
+  }
+  .meterTop{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:7px;
+  }
+  .bar{
+    height:10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    overflow:hidden;
+  }
+  .fill{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#5bd6ff,#ffe873);
+  }
+  .fill2{background:linear-gradient(90deg,#ff9f6e,#ffd166)}
+  .fill3{background:linear-gradient(90deg,#8cffc1,#5bd6ff)}
+  .notes{
+    padding:14px 16px 16px;
+    border-top:1px solid rgba(255,255,255,.08);
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.7;
+  }
+  .notes strong{color:var(--text)}
+  .miniTitle{
+    color:var(--text);
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:5px;
+  }
+  .steps{
+    display:grid;
+    gap:7px;
+  }
+  .stepItem{
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.08);
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.45;
+    background:rgba(255,255,255,.035);
+  }
+  .stepItem.active{
+    color:var(--text);
+    background:rgba(255,209,102,.13);
+    border-color:rgba(255,209,102,.35);
+  }
+  .kbd{
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    padding:1px 6px;
+    border-radius:6px;
+    background:rgba(255,255,255,.09);
+    color:var(--text);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>電源を入れた瞬間、電荷はどう動き始めるか</h1>
+      <div class="sub">
+        金属導線中の「電子のドリフト」と、回路全体へ伝わる「電界の変化」を分けて見るミニ教材です。
+        最初は止めて、ステップ送りで進められます。
+      </div>
+    </div>
+    <div class="badge">教材モデル・速度は誇張</div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="canvasBox">
+        <canvas id="cv" width="1280" height="720"></canvas>
+        <div class="hintOverlay">
+          <div class="pill"><strong>黄色</strong>：電界の変化が届いた範囲</div>
+          <div class="pill"><strong>水色</strong>：電子のドリフト</div>
+          <div class="pill"><strong>橙</strong>：慣用電流の向き</div>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="row">
+          <button class="primary" id="playBtn">再生</button>
+          <button id="resetBtn">最初へ</button>
+          <button id="stepBackBtn">1段戻す</button>
+          <button id="stepBtn">1段進める</button>
+          <label class="toggle"><input id="electronsChk" type="checkbox" checked>電子を見る</label>
+          <label class="toggle"><input id="convChk" type="checkbox" checked>慣用電流も見る</label>
+          <label class="toggle"><input id="energyChk" type="checkbox" checked>エネルギーの流れ</label>
+        </div>
+        <label class="range">
+          <span>進み具合</span>
+          <input id="timeSlider" type="range" min="0" max="1000" value="0">
+          <span id="timeLabel">0%</span>
+        </label>
+        <label class="range">
+          <span>再生速度</span>
+          <input id="speedSlider" type="range" min="0.15" max="2.2" step="0.05" value="0.55">
+          <span id="speedLabel">0.55</span>
+        </label>
+      </div>
+      <div class="notes">
+        <strong>大事な前提：</strong>
+        電荷は電源から粒として一列に出発して回路を満たす、というより、金属中には最初から自由電子が大量にあります。
+        スイッチを閉じると電界の変化が導線に沿って伝わり、その場所にいた電子が少しずつ一斉にドリフトし始めます。
+        この教材では見えるように速度と移動量をかなり誇張しています。
+      </div>
+    </section>
+
+    <aside class="card side">
+      <div class="stage">
+        <h2 id="stageTitle">0. スイッチを閉じる前</h2>
+        <p id="stageText">電池の内部では電荷を分ける働きがあります。外の導線には自由電子が最初からありますが、回路が開いているので持続的な流れはまだありません。</p>
+      </div>
+
+      <div class="meters">
+        <div class="meter">
+          <div class="meterTop"><span>電界の変化が届いた割合</span><span id="fieldPct">0%</span></div>
+          <div class="bar"><div class="fill" id="fieldBar"></div></div>
+        </div>
+        <div class="meter">
+          <div class="meterTop"><span>電子のドリフト開始範囲</span><span id="driftPct">0%</span></div>
+          <div class="bar"><div class="fill fill2" id="driftBar"></div></div>
+        </div>
+        <div class="meter">
+          <div class="meterTop"><span>豆電球・抵抗に届いた影響</span><span id="lampPct">0%</span></div>
+          <div class="bar"><div class="fill fill3" id="lampBar"></div></div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="miniTitle">ステップの見方</div>
+        <div class="steps" id="steps"></div>
+      </div>
+
+      <div class="stage">
+        <div class="miniTitle">この可視化での読み替え</div>
+        <p>
+          水色の点は「電子」。外部回路では電子はマイナス端子側からプラス端子側へ動きます。
+          橙の矢印は「慣用電流」で、向きは電子と逆です。
+          黄色い光は、電子そのものではなく「動けという条件が届いた場所」です。
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('cv');
+  const ctx = canvas.getContext('2d');
+
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const stepBtn = document.getElementById('stepBtn');
+  const stepBackBtn = document.getElementById('stepBackBtn');
+  const timeSlider = document.getElementById('timeSlider');
+  const speedSlider = document.getElementById('speedSlider');
+  const timeLabel = document.getElementById('timeLabel');
+  const speedLabel = document.getElementById('speedLabel');
+  const electronsChk = document.getElementById('electronsChk');
+  const convChk = document.getElementById('convChk');
+  const energyChk = document.getElementById('energyChk');
+
+  const stageTitle = document.getElementById('stageTitle');
+  const stageText = document.getElementById('stageText');
+  const fieldPct = document.getElementById('fieldPct');
+  const driftPct = document.getElementById('driftPct');
+  const lampPct = document.getElementById('lampPct');
+  const fieldBar = document.getElementById('fieldBar');
+  const driftBar = document.getElementById('driftBar');
+  const lampBar = document.getElementById('lampBar');
+  const stepsEl = document.getElementById('steps');
+
+  let t = 0;       // 0..1
+  let playing = false;
+  let last = performance.now();
+  let phase = 0;
+
+  const stages = [
+    {
+      at:0,
+      title:"0. スイッチを閉じる前",
+      text:"電池の内部では電荷を分ける働きがあります。外の導線には自由電子が最初からありますが、回路が開いているので持続的な流れはまだありません。"
+    },
+    {
+      at:.12,
+      title:"1. スイッチを閉じた直後",
+      text:"電源端子の近くで電界の変化が生まれ、導線に沿って伝わり始めます。まだ回路全体の電子が同時に動いたわけではありません。"
+    },
+    {
+      at:.28,
+      title:"2. 近くの電子から動き始める",
+      text:"電界の変化が届いた場所にいた自由電子が、その場で少しずつドリフトします。電子そのものが電源から遠くまで一気に飛ぶわけではありません。"
+    },
+    {
+      at:.50,
+      title:"3. 影響が抵抗へ届く",
+      text:"電界の変化が豆電球・抵抗まで届くと、そこでも局所的な電子の動きが始まります。エネルギーは導線の中だけでなく、周囲の電磁場として抵抗へ流れ込みます。"
+    },
+    {
+      at:.74,
+      title:"4. 回路全体がつながった状態になる",
+      text:"導線の各場所で電子が少しずつドリフトし、どの断面でもほぼ同じ電流として扱える状態へ近づきます。実際のドリフト速度は非常に遅いです。"
+    },
+    {
+      at:1,
+      title:"5. 定常状態",
+      text:"定常状態では、電子はゆっくりドリフトし続けます。速いのは電子の移動速度ではなく、電界の変化とエネルギー伝達です。"
+    }
+  ];
+
+  const stepLabels = [
+    "電池が端子に電位差を作る",
+    "スイッチを閉じる",
+    "電界の変化が導線へ進む",
+    "届いた場所の電子が少し動く",
+    "抵抗でエネルギーが熱・光になる",
+    "回路全体で定常電流として見える"
+  ];
+
+  stepLabels.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.className = 'stepItem';
+    div.textContent = `${i}. ${s}`;
+    stepsEl.appendChild(div);
+  });
+
+  const ease = x => x<0 ? 0 : x>1 ? 1 : (x*x*(3-2*x));
+  const clamp = (x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+  const lerp = (a,b,u)=>a+(b-a)*u;
+
+  // Circuit path coordinates.
+  const P = {
+    pos:[250,210], neg:[250,510],
+    switchA:[335,210], switchB:[440,210],
+    topR:[905,210], botR:[905,510],
+    botL:[250,510]
+  };
+
+  // Ordered conventional-current path: + terminal -> switch -> top wire -> resistor -> bottom wire -> - terminal.
+  const path = [
+    [250,210], [335,210], [440,210], [905,210],
+    [905,510], [250,510]
+  ];
+  const segLen = [];
+  let totalLen = 0;
+  for(let i=0;i<path.length-1;i++){
+    const a=path[i], b=path[i+1];
+    const l=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    segLen.push(l); totalLen+=l;
+  }
+  function pointAt(s){
+    s = ((s%1)+1)%1;
+    let d = s*totalLen;
+    for(let i=0;i<segLen.length;i++){
+      if(d <= segLen[i]){
+        const a=path[i], b=path[i+1];
+        const u=d/segLen[i];
+        return {x:lerp(a[0],b[0],u), y:lerp(a[1],b[1],u), angle:Math.atan2(b[1]-a[1],b[0]-a[0]), seg:i};
+      }
+      d-=segLen[i];
+    }
+    const a=path[path.length-2], b=path[path.length-1];
+    return {x:b[0], y:b[1], angle:Math.atan2(b[1]-a[1],b[0]-a[0]), seg:path.length-2};
+  }
+
+  function fieldProgress(){
+    // starts after switch closes; front spreads around the loop
+    return ease((t-.10)/.58);
+  }
+  function driftProgress(){
+    return ease((t-.18)/.62);
+  }
+  function lampProgress(){
+    return ease((t-.42)/.26);
+  }
+
+  function activeStage(){
+    let idx=0;
+    for(let i=0;i<stages.length;i++){
+      if(t >= stages[i].at - .0001) idx=i;
+    }
+    return idx;
+  }
+
+  function drawWireSegment(a,b,stroke,width,glow=false){
+    ctx.save();
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.strokeStyle=stroke;
+    ctx.lineWidth=width;
+    if(glow){
+      ctx.shadowColor=stroke;
+      ctx.shadowBlur=18;
+    }
+    ctx.beginPath();
+    ctx.moveTo(a[0],a[1]);
+    ctx.lineTo(b[0],b[1]);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWires(){
+    // base wires
+    const openSwitch = t < .10;
+    drawWireSegment([250,210],[335,210],'#8391b6',18);
+    drawWireSegment([440,210],[905,210],'#8391b6',18);
+    drawWireSegment([905,210],[905,510],'#8391b6',18);
+    drawWireSegment([905,510],[250,510],'#8391b6',18);
+
+    // Switch
+    ctx.save();
+    ctx.lineCap='round';
+    ctx.lineWidth=10;
+    ctx.strokeStyle='#ffd166';
+    ctx.shadowColor='#ffd166';
+    ctx.shadowBlur=t>.1?15:4;
+    ctx.beginPath();
+    ctx.moveTo(335,210);
+    if(openSwitch){
+      ctx.lineTo(417,165);
+    }else{
+      const u=ease((t-.10)/.08);
+      ctx.lineTo(lerp(417,440,u), lerp(165,210,u));
+    }
+    ctx.stroke();
+    ctx.fillStyle='#ffd166';
+    [[335,210],[440,210]].forEach(p=>{
+      ctx.beginPath(); ctx.arc(p[0],p[1],8,0,Math.PI*2); ctx.fill();
+    });
+    ctx.restore();
+
+    // field active glow along path from + side.
+    const fp = fieldProgress();
+    const maxDist = fp * totalLen;
+    let remaining = maxDist;
+    for(let i=0;i<path.length-1;i++){
+      const a=path[i], b=path[i+1], L=segLen[i];
+      if(remaining <= 0) break;
+      const u=clamp(remaining/L);
+      const end=[lerp(a[0],b[0],u), lerp(a[1],b[1],u)];
+      drawWireSegment(a,end,'rgba(255,232,115,.92)',9,true);
+      remaining -= L;
+    }
+
+    // second front from negative return side to show both terminals influence.
+    const fp2 = ease((t-.12)/.52);
+    const max2 = fp2 * (segLen[4]+segLen[3]+segLen[2]*.8);
+    let r=max2;
+    const rev = [[250,510],[905,510],[905,210],[440,210]];
+    for(let i=0;i<rev.length-1;i++){
+      const a=rev[i], b=rev[i+1], L=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      if(r <= 0) break;
+      const u=clamp(r/L);
+      const end=[lerp(a[0],b[0],u), lerp(a[1],b[1],u)];
+      drawWireSegment(a,end,'rgba(255,232,115,.45)',7,true);
+      r -= L;
+    }
+  }
+
+  function drawBattery(){
+    ctx.save();
+    // body
+    const x=180, y=270, w=95, h=180;
+    const grd=ctx.createLinearGradient(x,y,x+w,y+h);
+    grd.addColorStop(0,'#2a3551');
+    grd.addColorStop(1,'#111827');
+    ctx.fillStyle=grd;
+    roundRect(ctx,x,y,w,h,18,true,false);
+    ctx.strokeStyle='rgba(255,255,255,.16)';
+    ctx.lineWidth=2;
+    roundRect(ctx,x,y,w,h,18,false,true);
+
+    // terminals
+    ctx.fillStyle='#ff758f';
+    roundRect(ctx,x+28,y-26,40,34,7,true,false);
+    ctx.fillStyle='#71c7ff';
+    roundRect(ctx,x+28,y+h-8,40,34,7,true,false);
+
+    ctx.fillStyle='#eef3ff';
+    ctx.font='bold 26px system-ui';
+    ctx.textAlign='center';
+    ctx.fillText('+', x+w/2, y+58);
+    ctx.fillText('−', x+w/2, y+139);
+    ctx.font='700 18px system-ui';
+    ctx.fillText('電源',x+w/2,y+h+58);
+
+    // chemical push mini arrows inside
+    const pulse = (Math.sin(phase*2)+1)/2;
+    for(let i=0;i<4;i++){
+      const yy=y+135-i*32;
+      drawArrow(x+48, yy+10, x+48, yy-13, '#ffd166', 1.2+pulse*.6, 9);
+    }
+    ctx.restore();
+  }
+
+  function drawResistor(){
+    ctx.save();
+    const x=855,y=254,w=100,h=212;
+    const lp=lampProgress();
+    ctx.shadowColor=`rgba(255,209,102,${.2+lp*.8})`;
+    ctx.shadowBlur=8+lp*42;
+    const grd=ctx.createRadialGradient(x+w/2,y+h/2,10,x+w/2,y+h/2,115);
+    grd.addColorStop(0,`rgba(255,226,120,${.35+lp*.48})`);
+    grd.addColorStop(.58,`rgba(255,159,110,${.12+lp*.25})`);
+    grd.addColorStop(1,'rgba(255,255,255,.03)');
+    ctx.fillStyle=grd;
+    ctx.beginPath(); ctx.arc(x+w/2,y+h/2,105,0,Math.PI*2); ctx.fill();
+
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#172033';
+    roundRect(ctx,x,y,w,h,18,true,false);
+    ctx.strokeStyle='rgba(255,255,255,.22)';
+    ctx.lineWidth=2;
+    roundRect(ctx,x,y,w,h,18,false,true);
+    ctx.fillStyle=`rgba(255,209,102,${.25+lp*.70})`;
+    roundRect(ctx,x+18,y+16,w-36,h-32,14,true,false);
+
+    ctx.fillStyle='#0b0f1a';
+    ctx.globalAlpha=.65;
+    for(let i=0;i<7;i++){
+      ctx.beginPath();
+      const yy=y+38+i*24;
+      ctx.moveTo(x+22,yy);
+      ctx.lineTo(x+43,yy+12);
+      ctx.lineTo(x+57,yy-12);
+      ctx.lineTo(x+78,yy);
+      ctx.strokeStyle='#0b0f1a';
+      ctx.lineWidth=5;
+      ctx.lineJoin='round';
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+
+    ctx.fillStyle='#eef3ff';
+    ctx.font='bold 18px system-ui';
+    ctx.textAlign='center';
+    ctx.fillText('抵抗',x+w/2,y+h+36);
+    ctx.font='13px system-ui';
+    ctx.fillStyle='rgba(238,243,255,.72)';
+    ctx.fillText('熱・光に変わる場所',x+w/2,y+h+58);
+    ctx.restore();
+  }
+
+  function drawChargeLabels(){
+    ctx.save();
+    ctx.font='bold 15px system-ui';
+    ctx.textAlign='center';
+
+    ctx.fillStyle='rgba(255,117,143,.95)';
+    ctx.fillText('＋端子',250,166);
+    ctx.fillStyle='rgba(113,199,255,.95)';
+    ctx.fillText('−端子',250,560);
+
+    ctx.fillStyle='rgba(255,232,115,.92)';
+    const fp=fieldProgress();
+    if(t>.12 && fp<.98){
+      const p=pointAt(fp);
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,19+Math.sin(phase*5)*3,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,232,115,.9)';
+      ctx.lineWidth=4;
+      ctx.shadowColor='#ffe873';
+      ctx.shadowBlur=20;
+      ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.fillText('電界の変化の先頭',p.x,p.y-32);
+    }
+
+    if(t<.11){
+      ctx.fillStyle='rgba(255,255,255,.70)';
+      ctx.font='14px system-ui';
+      ctx.fillText('ここがまだ開いている',389,137);
+    }
+    ctx.restore();
+  }
+
+  function drawParticles(){
+    const dp = driftProgress();
+    const fp = fieldProgress();
+    const n=72;
+    const electronOn = electronsChk.checked;
+    const convOn = convChk.checked;
+
+    // Electron positions: move opposite to conventional current.
+    if(electronOn){
+      for(let i=0;i<n;i++){
+        let s=i/n;
+        const p0=pointAt(s);
+        // only active once field has reached nearby path position.
+        const reached = fp > s || fp > .93;
+        const local = reached ? ease((fp - s + .08)/.22) : 0;
+        const move = dp * (.022 + .035*Math.sin(i*12.989)**2);
+        const p=pointAt(s - move - phase*.010*dp); // opposite conventional direction
+        const alpha=.28 + .72*local;
+        drawElectron(p.x,p.y,5+local*2,alpha, p.angle+Math.PI);
+        // tiny wake
+        if(local>.2){
+          ctx.save();
+          ctx.globalAlpha=alpha*.35;
+          drawArrow(p.x+Math.cos(p.angle)*14, p.y+Math.sin(p.angle)*14,
+                    p.x-Math.cos(p.angle)*12, p.y-Math.sin(p.angle)*12,
+                    '#71c7ff', 1, 6);
+          ctx.restore();
+        }
+      }
+    }
+
+    if(convOn && t>.18){
+      ctx.save();
+      ctx.globalAlpha=.25+.55*dp;
+      for(let i=0;i<18;i++){
+        const s=(i/18 + phase*.014*dp)%1;
+        const p=pointAt(s);
+        if(fp < s && fp < .92) continue;
+        drawArrow(p.x-Math.cos(p.angle)*18, p.y-Math.sin(p.angle)*18,
+                  p.x+Math.cos(p.angle)*18, p.y+Math.sin(p.angle)*18,
+                  '#ff9f6e', 1.15, 8);
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawEnergyFlow(){
+    if(!energyChk.checked || t<.34) return;
+    const lp=lampProgress();
+    ctx.save();
+    ctx.globalAlpha=.18 + lp*.55;
+    ctx.strokeStyle='#8cffc1';
+    ctx.lineWidth=2;
+    ctx.setLineDash([8,10]);
+    ctx.shadowColor='#8cffc1';
+    ctx.shadowBlur=12;
+
+    // field/energy arcs in space around wires toward resistor
+    for(let k=0;k<5;k++){
+      const offset=k*20;
+      ctx.beginPath();
+      ctx.moveTo(350+offset*1.2, 165-offset*.18);
+      ctx.bezierCurveTo(550,110-offset, 780,130-offset*.3, 900,245);
+      ctx.stroke();
+      if(lp>.15){
+        const u=(phase*.025+k*.13)%1;
+        const pos=bezierPoint([350+offset*1.2,165-offset*.18],[550,110-offset],[780,130-offset*.3],[900,245],u);
+        drawArrow(pos.x-8,pos.y-4,pos.x+11,pos.y+7,'#8cffc1',1,7);
+      }
+    }
+    for(let k=0;k<5;k++){
+      const offset=k*20;
+      ctx.beginPath();
+      ctx.moveTo(350+offset*1.2, 555+offset*.18);
+      ctx.bezierCurveTo(550,610+offset, 780,590+offset*.3, 900,475);
+      ctx.stroke();
+      if(lp>.15){
+        const u=(phase*.025+k*.13)%1;
+        const pos=bezierPoint([350+offset*1.2,555+offset*.18],[550,610+offset],[780,590+offset*.3],[900,475],u);
+        drawArrow(pos.x-8,pos.y+4,pos.x+11,pos.y-7,'#8cffc1',1,7);
+      }
+    }
+
+    ctx.setLineDash([]);
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(140,255,193,.85)';
+    ctx.font='bold 14px system-ui';
+    ctx.textAlign='center';
+    if(t>.44) ctx.fillText('エネルギーは周囲の電磁場として抵抗へ向かう',635,90);
+    ctx.restore();
+  }
+
+  function drawLegendText(){
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,.72)';
+    ctx.font='14px system-ui';
+    ctx.textAlign='left';
+    ctx.fillText('外部回路の電子：−端子側 → 抵抗 → ＋端子側',56,642);
+    ctx.fillText('慣用電流：＋端子側 → 抵抗 → −端子側',56,668);
+    ctx.fillStyle='rgba(255,209,102,.92)';
+    ctx.fillText('※ 実際の電子のドリフトは、この絵よりずっと遅く、移動量も小さい',56,696);
+    ctx.restore();
+  }
+
+  function drawElectron(x,y,r,alpha,dir){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.shadowColor='#71c7ff';
+    ctx.shadowBlur=10;
+    ctx.fillStyle='#71c7ff';
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#07111d';
+    ctx.font=`bold ${Math.max(10,r*2)}px system-ui`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('−',x,y+.4);
+    ctx.restore();
+  }
+
+  function drawArrow(x1,y1,x2,y2,color,width=1,head=8){
+    ctx.save();
+    ctx.strokeStyle=color;
+    ctx.fillStyle=color;
+    ctx.lineWidth=2.2*width;
+    ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1);
+    ctx.beginPath();
+    ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-Math.cos(a-.55)*head, y2-Math.sin(a-.55)*head);
+    ctx.lineTo(x2-Math.cos(a+.55)*head, y2-Math.sin(a+.55)*head);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function bezierPoint(p0,p1,p2,p3,u){
+    const v=1-u;
+    return {
+      x:v*v*v*p0[0]+3*v*v*u*p1[0]+3*v*u*u*p2[0]+u*u*u*p3[0],
+      y:v*v*v*p0[1]+3*v*v*u*p1[1]+3*v*u*u*p2[1]+u*u*u*p3[1]
+    };
+  }
+
+  function roundRect(ctx,x,y,w,h,r,fill,stroke){
+    const rr=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+    if(fill) ctx.fill();
+    if(stroke) ctx.stroke();
+  }
+
+  function drawBackgroundLabels(){
+    ctx.save();
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(238,243,255,.88)';
+    ctx.font='bold 20px system-ui';
+    ctx.fillText('金属導線',590,185);
+    ctx.fillText('戻り導線',570,548);
+
+    ctx.font='13px system-ui';
+    ctx.fillStyle='rgba(238,243,255,.58)';
+    ctx.fillText('導線の中には自由電子が最初からいる',590,160);
+    ctx.restore();
+  }
+
+  function updateUI(){
+    const idx=activeStage();
+    stageTitle.textContent=stages[idx].title;
+    stageText.textContent=stages[idx].text;
+    [...stepsEl.children].forEach((el,i)=>{
+      el.classList.toggle('active', i<=idx);
+    });
+    const fp=Math.round(fieldProgress()*100);
+    const dp=Math.round(driftProgress()*100);
+    const lp=Math.round(lampProgress()*100);
+    fieldPct.textContent=fp+'%';
+    driftPct.textContent=dp+'%';
+    lampPct.textContent=lp+'%';
+    fieldBar.style.width=fp+'%';
+    driftBar.style.width=dp+'%';
+    lampBar.style.width=lp+'%';
+    timeLabel.textContent=Math.round(t*100)+'%';
+    timeSlider.value=Math.round(t*1000);
+    speedLabel.textContent=Number(speedSlider.value).toFixed(2);
+    playBtn.textContent=playing?'一時停止':'再生';
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawBackgroundLabels();
+    drawEnergyFlow();
+    drawWires();
+    drawBattery();
+    drawResistor();
+    drawParticles();
+    drawChargeLabels();
+    drawLegendText();
+    updateUI();
+  }
+
+  function tick(now){
+    const dt=Math.min(.05,(now-last)/1000);
+    last=now;
+    phase += dt*60;
+    if(playing){
+      t += dt*Number(speedSlider.value)*.10;
+      if(t>=1){t=1; playing=false;}
+    }
+    render();
+    requestAnimationFrame(tick);
+  }
+
+  playBtn.onclick=()=>{playing=!playing; last=performance.now();};
+  resetBtn.onclick=()=>{t=0; playing=false;};
+  stepBtn.onclick=()=>{playing=false; t=clamp(t+.12);};
+  stepBackBtn.onclick=()=>{playing=false; t=clamp(t-.12);};
+  timeSlider.oninput=()=>{playing=false; t=Number(timeSlider.value)/1000;};
+  speedSlider.oninput=updateUI;
+  [electronsChk,convChk,energyChk].forEach(el=>el.onchange=render);
+
+  window.addEventListener('keydown', e=>{
+    if(e.code==='Space'){e.preventDefault(); playing=!playing;}
+    if(e.key==='ArrowRight'){playing=false; t=clamp(t+.04);}
+    if(e.key==='ArrowLeft'){playing=false; t=clamp(t-.04);}
+  });
+
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
