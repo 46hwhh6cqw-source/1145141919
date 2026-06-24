@@ -1,87 +1,37 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>ケルビンダブルブリッジ：rが残らないまで</title>
-<style>
-:root{color-scheme:dark;--bg:#06111c;--card:#071827;--ink:#eff8ff;--sub:#adc0d1;--wire:#94b0c9;--main:#ffd166;--top:#63b3ff;--aux:#61e5ff;--gal:#caa0ff;--rx:#ff9f6e;--r:#ff6b8a;--rs:#78efc4;--ok:#8ff5ce;--white:#ffffff}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(900px 530px at 50% -170px,#1d4368,#06111c 60%,#02060b);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}body{overflow-y:auto;-webkit-overflow-scrolling:touch}.app{max-width:1260px;margin:0 auto;padding:8px 8px 30px}.topbar{position:sticky;top:0;z-index:20;background:linear-gradient(#06111c 78%,rgba(6,17,28,.78));backdrop-filter:blur(8px);display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 0 8px}h1{margin:0;font-size:clamp(18px,4.6vw,31px);line-height:1.05}.sub{margin:4px 0 0;color:var(--sub);font-size:12px}.controls{display:flex;gap:6px}button{border:1px solid #365772;border-radius:12px;background:#0c1d2e;color:#eaf7ff;min-height:38px;padding:9px 10px;font-weight:900;font-size:13px;cursor:pointer}.primary{background:#1b6dff;border-color:#6ca8ff}.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.9fr);gap:10px}.card{background:rgba(6,18,30,.95);border:1px solid #284258;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.34);overflow:hidden}.diagram{padding:8px}.diagram svg{width:100%;height:auto;display:block}.side{padding:13px;display:grid;gap:10px;align-content:start}.tabs{display:grid;grid-template-columns:repeat(9,1fr);gap:5px}.tab{height:8px;min-height:8px;border:0;border-radius:999px;background:#173047;padding:0}.tab.on{background:linear-gradient(90deg,var(--ok),var(--top),var(--main))}.title{margin:0;font-size:20px;line-height:1.25}.lead{margin:0;color:#d8e7f2;line-height:1.62;font-size:14px}.box{background:#071827;border:1px solid #31536d;border-radius:14px;padding:10px}.box b{display:block;color:#9fd1ff;font-size:12px;margin-bottom:6px}.box p{margin:0;color:#b9cada;font-size:13px;line-height:1.58}.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:17px;font-weight:950;color:var(--main)}.legend{display:flex;gap:6px;flex-wrap:wrap;font-size:11px;color:#9eb0c0}.pill{background:#081929;border:1px solid #33516a;border-radius:999px;padding:4px 7px}.split{grid-column:1/-1;padding:13px}.split h2{font-size:19px;margin:0 0 10px}.bars{display:grid;gap:12px}.row{display:grid;grid-template-columns:130px 1fr 100px;gap:10px;align-items:center}.rowLabel{font-weight:900;color:#cfe2f0;font-size:13px}.bar{height:48px;border:1px solid #34536b;border-radius:13px;overflow:hidden;display:flex;background:#081929}.seg{height:100%;display:flex;align-items:center;justify-content:center;font-weight:950;font-size:13px;color:#08121b;white-space:nowrap;border-right:2px solid rgba(0,0,0,.18)}.seg.rx{background:var(--rx)}.seg.r1,.seg.r2{background:var(--r);color:#fff}.seg.rs{background:var(--rs)}.ratio{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#ffd166;font-weight:950}.explain{color:#c0d2e2;font-size:13px;line-height:1.58;margin:8px 0 0}.activeRow{outline:3px solid #fff;border-radius:16px;outline-offset:4px}.bg{fill:#081522;stroke:#29465e}.wire{fill:none;stroke:var(--wire);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.thin{fill:none;stroke:#6f8aa3;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}.part{fill:#102337;stroke:#5b7892;stroke-width:3}.rxPart{fill:#302117;stroke:var(--rx)}.rPart{fill:#391b27;stroke:var(--r)}.rsPart{fill:#172d22;stroke:var(--rs)}.auxPart{fill:#102d39;stroke:var(--aux)}.src{fill:#102437;stroke:#98c8ff;stroke-width:4}.gal{fill:#1c1230;stroke:var(--gal);stroke-width:4}.node{fill:#e4f4ff;stroke:#07111b;stroke-width:4}.lbl{fill:#f6fbff;font:950 25px ui-monospace,SFMono-Regular,Menlo,monospace}.small{font-size:19px}.nodeTxt{fill:#eff8ff;font-size:17px;font-weight:950}.tiny{fill:#9eb5c7;font-size:13px;font-weight:800}.caption{fill:#d8e7f2;font-size:15px;font-weight:900}.path{fill:none;stroke:var(--main);stroke-width:10;stroke-linecap:round;stroke-linejoin:round;opacity:0;marker-end:url(#arrowMain)}.path.show{opacity:.95;filter:url(#glow)}.pTop{stroke:var(--top);marker-end:url(#arrowTop)}.pAux{stroke:var(--aux);marker-end:url(#arrowAux)}.pGal{stroke:var(--gal);marker-end:url(#arrowGal)}.hl{fill:none;stroke:#fff;stroke-width:5;stroke-dasharray:10 8;opacity:0}.hl.show{opacity:.9;filter:url(#glow)}.fade{opacity:.23}.emph{filter:url(#glow)}.call{fill:#06131f;stroke:#31516a;stroke-width:2}.callText{fill:#e9f7ff;font-size:16px;font-weight:900}@media(max-width:900px){.topbar{grid-template-columns:1fr}.controls{display:grid;grid-template-columns:1fr 1fr 1fr}.controls button{font-size:12px;padding:8px 6px}.layout{display:block}.diagram{height:60svh;margin-bottom:8px}.diagram svg{height:100%;width:100%}.side{margin-top:8px}.title{font-size:17px}.lead{font-size:13px;line-height:1.55}.split{margin-top:10px}.row{grid-template-columns:1fr}.rowLabel{font-size:12px}.bar{height:42px}.ratio{font-size:13px}.legend{display:none}.sub{font-size:11px}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="refresh" content="0; url=./charge-motion/" />
+  <title>回路を流れる電荷</title>
+  <style>
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #0E1116;
+      color: #E6EDF3;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    }
+    main {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+    a {
+      color: #F2A93B;
+      font-weight: 800;
+    }
+  </style>
 </head>
 <body>
-<main class="app">
-<header class="topbar">
-<div><h1>ケルビンダブルブリッジ</h1><p class="sub">6番で答えに飛ばず、rが残らない所まで分解。</p></div>
-<div class="controls"><button id="back">戻る</button><button id="next" class="primary">次へ</button><button id="reset">最初</button></div>
-</header>
-<section class="layout">
-<div class="card diagram">
-<svg viewBox="0 0 1120 740" aria-label="correct Kelvin double bridge circuit">
-<defs>
-<filter id="glow" x="-35%" y="-35%" width="170%" height="170%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<marker id="arrowMain" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#ffd166"/></marker>
-<marker id="arrowTop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#63b3ff"/></marker>
-<marker id="arrowAux" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#61e5ff"/></marker>
-<marker id="arrowGal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#caa0ff"/></marker>
-</defs>
-<rect x="18" y="18" width="1084" height="704" rx="28" class="bg"/>
-<text x="40" y="58" class="caption">正しい接続：p,q は r の両端 B-C。G は M-N。</text>
-<circle cx="110" cy="510" r="10" class="node"/><text x="88" y="548" class="nodeTxt">A</text><text x="65" y="576" class="tiny">高電位</text>
-<circle cx="1010" cy="510" r="10" class="node"/><text x="1000" y="548" class="nodeTxt">D</text><text x="978" y="576" class="tiny">低電位</text>
-<path d="M110 510 V160 H245" class="wire" data-g="rail top"/><path d="M1010 510 V160 H875" class="wire" data-g="rail top"/>
-<g data-g="source"><circle cx="560" cy="640" r="38" class="src"/><text x="560" y="650" text-anchor="middle" class="lbl">E</text><path d="M110 510 V640 H522" class="thin"/><path d="M598 640 H1010 V510" class="thin"/><text x="510" y="704" class="tiny">電源は A-D 間に接続</text></g>
-<g data-g="main rpart result bars"><path d="M110 510 H205" class="wire"/><rect x="205" y="472" width="135" height="76" rx="17" class="part rxPart"/><text x="272" y="520" text-anchor="middle" class="lbl">Rx</text><path d="M340 510 H395" class="wire"/><circle cx="395" cy="510" r="10" class="node"/><text x="386" y="548" class="nodeTxt">B</text><path d="M395 510 H485" class="wire"/><rect x="485" y="472" width="150" height="76" rx="17" class="part rPart"/><text x="560" y="520" text-anchor="middle" class="lbl">r</text><path d="M635 510 H725" class="wire"/><circle cx="725" cy="510" r="10" class="node"/><text x="716" y="548" class="nodeTxt">C</text><path d="M725 510 H790" class="wire"/><rect x="790" y="472" width="135" height="76" rx="17" class="part rsPart"/><text x="858" y="520" text-anchor="middle" class="lbl">Rs</text><path d="M925 510 H1010" class="wire"/></g>
-<g data-g="aux rpart result bars"><path d="M395 510 V330 H435" class="wire" stroke="#61e5ff"/><rect x="435" y="292" width="95" height="76" rx="17" class="part auxPart"/><text x="482" y="340" text-anchor="middle" class="lbl small">p</text><path d="M530 330 H560" class="wire" stroke="#61e5ff"/><circle cx="560" cy="330" r="10" class="node"/><text x="550" y="300" class="nodeTxt">N</text><path d="M560 330 H590" class="wire" stroke="#61e5ff"/><rect x="590" y="292" width="95" height="76" rx="17" class="part auxPart"/><text x="638" y="340" text-anchor="middle" class="lbl small">q</text><path d="M685 330 H725 V510" class="wire" stroke="#61e5ff"/></g>
-<g data-g="top result bars"><path d="M245 160 H285" class="wire"/><rect x="285" y="122" width="120" height="76" rx="17" class="part"/><text x="345" y="170" text-anchor="middle" class="lbl">P</text><path d="M405 160 H560" class="wire"/><circle cx="560" cy="160" r="10" class="node"/><text x="550" y="130" class="nodeTxt">M</text><path d="M560 160 H715" class="wire"/><rect x="715" y="122" width="120" height="76" rx="17" class="part"/><text x="775" y="170" text-anchor="middle" class="lbl">Q</text><path d="M835 160 H875" class="wire"/></g>
-<g data-g="gal result"><path d="M560 160 V330" class="wire" stroke="#caa0ff"/><circle cx="560" cy="245" r="34" class="gal"/><text x="560" y="256" text-anchor="middle" class="lbl">G</text></g>
-<path id="curMain" d="M110 510 H205 H340 H395 H485 H635 H725 H790 H925 H1010" class="path"/>
-<path id="curTop" d="M110 510 V160 H285 H405 H560 H715 H835 H1010 V510" class="path pTop"/>
-<path id="curAux" d="M395 510 V330 H435 H530 H560 H590 H685 H725 V510" class="path pAux"/>
-<path id="curGal" d="M560 330 V160" class="path pGal"/>
-<rect id="hlR" x="372" y="285" width="380" height="290" rx="24" class="hl"/>
-<rect id="hlMN" x="505" y="112" width="110" height="260" rx="24" class="hl"/>
-<rect id="hlAll" x="68" y="88" width="984" height="522" rx="26" class="hl"/>
-<g><rect x="54" y="84" width="390" height="52" rx="14" class="call"/><text id="msg1" x="249" y="118" text-anchor="middle" class="callText">回路全体</text><rect x="650" y="84" width="400" height="52" rx="14" class="call"/><text id="msg2" x="850" y="118" text-anchor="middle" class="callText">説明箇所を白点線で表示</text></g>
-</svg>
-</div>
-<aside class="card side">
-<div class="tabs" id="tabs"></div>
-<h2 class="title" id="title"></h2>
-<p class="lead" id="lead"></p>
-<div class="box"><b>いま見ている場所</b><p id="where"></p></div>
-<div class="box"><b>ここで分かること</b><p id="say"></p></div>
-<div class="box"><b>式で書くなら</b><p class="formula" id="formula"></p></div>
-<p class="lead" id="note"></p>
-<div class="legend"><span class="pill">黄: 主枝</span><span class="pill">青: P,Q</span><span class="pill">水: p,q</span><span class="pill">紫: G</span><span class="pill">白点線: 説明箇所</span></div>
-</aside>
-<div class="card split">
-<h2>r が答えに残らない所までを分解</h2>
-<div class="bars">
- <div class="row" id="rowTotal"><div class="rowLabel">A-N と N-D</div><div class="bar"><div class="seg rx" style="width:25%">Rx</div><div class="seg r1" style="width:8.333%">r1</div><div class="seg r2" style="width:16.667%">r2</div><div class="seg rs" style="width:50%">Rs</div></div><div class="ratio">40:80</div></div>
- <div class="row" id="rowR"><div class="rowLabel">rだけを見る</div><div class="bar"><div class="seg r1" style="width:33.333%">r1</div><div class="seg r2" style="width:66.667%">r2</div></div><div class="ratio">10:20</div></div>
- <div class="row" id="rowSub"><div class="rowLabel">同じ赤を引く</div><div class="bar"><div class="seg rx" style="width:25%">40-10</div><div class="seg r1" style="width:8.333%">消</div><div class="seg r2" style="width:16.667%">消</div><div class="seg rs" style="width:50%">80-20</div></div><div class="ratio">30:60</div></div>
- <div class="row" id="rowAns"><div class="rowLabel">残り</div><div class="bar"><div class="seg rx" style="width:33.333%">Rx</div><div class="seg rs" style="width:66.667%">Rs</div></div><div class="ratio">1:2</div></div>
-</div>
-<p class="explain" id="barText">最初は回路図だけ見ます。棒グラフは6番から使います。</p>
-</div>
-</section>
-</main>
-<script>
-const steps=[
-{t:'1. 回路全体を確認',lead:'接続だけを見る。主枝、比較腕、補助腕、検流計を分ける。',where:'全体。A-D間に主枝とP,Q枝、B-C間にp,q枝、M-N間にG。',say:'p,qはrと直列ではなく、rの両端B-Cにまたがる。',f:'—',show:['hlAll'],paths:[],g:'all',m1:'正しい回路全体',m2:'p,q は B-C に接続',bar:'none',bt:'最初は回路図だけ見ます。棒グラフは6番から使います。'},
-{t:'2. r が邪魔な場所',lead:'r は Rx と Rs の間、B-C間にある。普通に測るとこの電圧降下が混ざる。',where:'白点線内の B-C。ここが接続抵抗 r。',say:'消したいのは r そのものではなく、最終結果に残る r の電圧成分。',f:'V_B - V_C',show:['hlR'],paths:['curMain'],g:'rpart',m1:'ここが r',m2:'r は B-C 間',bar:'none',bt:'ここでは r の位置だけ見ます。'},
-{t:'3. p,q は N を作る',lead:'p,qはB-Cに接続されるので、rの途中にNを作れる。',where:'水色の枝。Bからp,N,qを通ってCへ行く。',say:'直列接続だけではNを作れない。だから直列ではダメ。',f:'B → p → N → q → C',show:['hlR'],paths:['curAux'],g:'aux',m1:'p,q が N を作る',m2:'N は r 側の点',bar:'none',bt:'Nは、rを r1 と r2 に分けるための点です。'},
-{t:'4. P,Q は M を作る',lead:'P,QはA-Dに接続されるので、全体電圧の途中にMを作る。',where:'青い枝。AからP,M,Qを通ってDへ行く。',say:'Mは全体A-Dを分ける点。Nはrの両端B-Cを分ける点。',f:'A → P → M → Q → D',show:['hlAll'],paths:['curTop'],g:'top',m1:'P,Q が M を作る',m2:'M は全体側の点',bar:'none',bt:'まだ答えは読みません。Mを作っただけです。'},
-{t:'5. G=0 は M=N の合図',lead:'MとNが同じ電圧ならGに流れない。ここで初めて同じ高さの切れ目ができる。',where:'白点線内のM-G-N。ここは判定器。',say:'G=0は、MとNが同じ電位になったことを知らせるだけ。まだ答えではない。',f:'V_M = V_N',show:['hlMN'],paths:['curGal'],g:'gal',m1:'G=0 を確認',m2:'M と N が同電位',bar:'none',bt:'ここでもまだ答えは出しません。次から棒グラフで中身を見ます。'},
-{t:'6. G=0 で全体を N で切る',lead:'M=Nなので、全体をNで切ってよい。すると上側は Rx+r1、下側は r2+Rs になる。',where:'下の1段目の棒。赤いrが、r1とr2に分かれて両側へ入る。',say:'ここで急に答えは出さない。まず「上側と下側の中身」を確認する。',f:'A-N : N-D = 40 : 80',show:['hlMN','hlR'],paths:['curMain','curTop','curAux'],g:'bars',m1:'棒グラフ1段目を見る',m2:'上側=Rx+r1, 下側=r2+Rs',bar:'rowTotal',bt:'G=0により、MとNは同じ電圧点。だから全体をNで切って考えられます。'},
-{t:'7. r だけを同じ比で切る',lead:'p,qとP,Qの比をそろえているので、rも同じ比で r1:r2 に切れている。',where:'下の2段目の棒。rだけを見ると r1:r2 も 10:20。',say:'1段目の全体比 40:80 と、2段目のr比 10:20 が同じ。ここがrを外せる条件。',f:'r1 : r2 = 10 : 20',show:['hlR'],paths:['curAux'],g:'bars',m1:'棒グラフ2段目を見る',m2:'r だけも同じ比',bar:'rowR',bt:'p,qは、rだけを r1 と r2 に分けるための枝です。'},
-{t:'8. 同じ比の赤い部分を取り除く',lead:'上側からr1、下側からr2を取り除く。取り除く赤い部分も同じ比なので、残りの比が読める。',where:'下の3段目の棒。40から10を引き、80から20を引く。',say:'残りは 30 と 60。これが Rx と Rs の電圧分。',f:'40 - 10 = 30, 80 - 20 = 60',show:['hlR'],paths:['curMain','curAux'],g:'bars',m1:'赤い r を取り除く',m2:'残りは Rx と Rs',bar:'rowSub',bt:'ここで初めて r の分を外します。物理的に消えるのではなく、比較から外します。'},
-{t:'9. 残りから答えを読む',lead:'赤いrを外した残りが Rx と Rs。残りの比から未知抵抗を読む。',where:'下の4段目の棒。残ったものだけを見る。',say:'だから最後に Rx と Rs の関係だけが残る。',f:'Rx = Rs × P/Q',show:['hlR','hlMN'],paths:['curMain','curTop','curAux'],g:'result',m1:'最後に答えを読む',m2:'ここで式が出る',bar:'rowAns',bt:'答えはここで出します。6番ではまだ答えを出しません。'}
-];
-let i=0;const $=q=>document.querySelector(q),$$=q=>Array.from(document.querySelectorAll(q));
-steps.forEach((_,k)=>{const b=document.createElement('button');b.className='tab';b.onclick=()=>{i=k;render()};$('#tabs').appendChild(b)});
-function render(){const s=steps[i];$('#title').textContent=s.t;$('#lead').textContent=s.lead;$('#where').textContent=s.where;$('#say').textContent=s.say;$('#formula').textContent=s.f;$('#note').textContent=i<5?'まだ答えは出しません。まず回路上の場所を確認します。':'ここから下の棒グラフで、rが答えに残らない過程を見ます。';$('#msg1').textContent=s.m1;$('#msg2').textContent=s.m2;$('#barText').textContent=s.bt;$$('.tab').forEach((b,k)=>b.classList.toggle('on',k===i));$$('[data-g]').forEach(el=>{const tags=(el.dataset.g||'').split(' ');const active=tags.includes(s.g)||tags.includes('all')||s.g==='result';el.classList.toggle('fade',!active);el.classList.toggle('emph',active)});$$('.path').forEach(p=>p.classList.remove('show'));(s.paths||[]).forEach(id=>$('#'+id).classList.add('show'));$$('.hl').forEach(h=>h.classList.remove('show'));(s.show||[]).forEach(id=>$('#'+id).classList.add('show'));['rowTotal','rowR','rowSub','rowAns'].forEach(id=>$('#'+id).classList.toggle('activeRow',s.bar===id))}
-$('#back').onclick=()=>{i=(i+steps.length-1)%steps.length;render()};$('#next').onclick=()=>{i=(i+1)%steps.length;render()};$('#reset').onclick=()=>{i=0;render()};render();
-</script>
+  <main>
+    <div>
+      <p>回路を流れる電荷を開いています…</p>
+      <p><a href="./charge-motion/">開かない場合はこちら</a></p>
+    </div>
+  </main>
 </body>
 </html>
