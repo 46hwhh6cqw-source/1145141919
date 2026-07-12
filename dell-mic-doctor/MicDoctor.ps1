@@ -1,4 +1,4 @@
-<#
+﻿<#
     MicDoctor.ps1
     内蔵マイクの「診断ファースト」トラブルシューター（Windows / Dell Inspiron 向け）
 
