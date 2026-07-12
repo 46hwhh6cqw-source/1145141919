@@ -28,6 +28,10 @@ param(
 $ErrorActionPreference = "Continue"
 $ProgressPreference    = "SilentlyContinue"
 
+# コンソール出力を UTF-8 に固定（chcp 65001 と一致させ、日本語の文字化けを防ぐ）。
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
+try { $OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
+
 $workDir     = "C:\ProgramData\DellMicRepair"
 $logFile     = Join-Path $workDir "sst_repair.log"
 $scriptCopy  = Join-Path $workDir "MicSST-Repair.ps1"

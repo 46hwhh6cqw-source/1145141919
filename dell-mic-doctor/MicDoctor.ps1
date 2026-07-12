@@ -23,6 +23,10 @@ param(
 $ErrorActionPreference = "Continue"
 $ProgressPreference    = "SilentlyContinue"
 
+# コンソール出力を UTF-8 に固定（chcp 65001 と一致させ、日本語の文字化けを防ぐ）。
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
+try { $OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
+
 $workDir = Join-Path $env:LOCALAPPDATA "MicDoctor"
 New-Item -ItemType Directory -Path $workDir -Force | Out-Null
 $logFile = Join-Path $workDir ("micdoctor_{0}.log" -f (Get-Date -Format "yyyyMMdd_HHmmss"))
