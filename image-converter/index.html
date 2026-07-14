@@ -136,6 +136,7 @@
 
     footer { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.9; }
     footer b { color: var(--text); }
+    footer a { color: var(--accent); }
     footer details { margin-top: 8px; }
     footer summary { cursor: pointer; color: var(--accent); font-weight: 700; }
     footer ol { margin: 8px 0 0; padding-left: 20px; }
@@ -234,20 +235,22 @@
         </label>
       </div>
 
-      <div class="sec">ファイルから起動したとき</div>
-      <div class="setting">
-        <div class="lbl">ダブルクリックやショートカットへのドロップで開いたときの動作</div>
-        <div class="seg" id="launchSeg">
-          <button data-v="add">追加のみ</button>
-          <button data-v="convert">自動変換</button>
-          <button data-v="convertSave" class="on">変換+保存</button>
+      <div id="launchSettings">
+        <div class="sec">ファイルから起動したとき</div>
+        <div class="setting">
+          <div class="lbl">ダブルクリックやショートカットへのドロップで開いたときの動作</div>
+          <div class="seg" id="launchSeg">
+            <button data-v="add">追加のみ</button>
+            <button data-v="convert">自動変換</button>
+            <button data-v="convertSave" class="on">変換+保存</button>
+          </div>
         </div>
-      </div>
-      <div class="setting">
-        <div class="lbl">自動保存の方法（保存先はダウンロードフォルダ）</div>
-        <div class="seg" id="saveSeg">
-          <button data-v="each" class="on">1枚ずつ</button>
-          <button data-v="zip">ZIP</button>
+        <div class="setting">
+          <div class="lbl">自動保存の方法（保存先はダウンロードフォルダ）</div>
+          <div class="seg" id="saveSeg">
+            <button data-v="each" class="on">1枚ずつ</button>
+            <button data-v="zip">ZIP</button>
+          </div>
         </div>
       </div>
     </aside>
@@ -280,9 +283,12 @@
     ・変換は<b>すべて端末内で完結</b>します（サーバー送信なし・オフラインでも動作）。<br />
     ・「ZIPでまとめて保存」では、各ファイルの<b>更新日時に撮影日時を設定</b>します。<br />
     ・HEICの回転情報は画像自体に反映してから書き出すので、向きがズレることはありません。<br />
-    ・EXIFはJPG / PNG / WebPのどの出力形式でも引き継がれます（GIF・BMP入力にはEXIFがないため対象外）。
+    ・EXIFはJPG / PNG / WebPのどの出力形式でも引き継がれます（GIF・BMP入力にはEXIFがないため対象外）。<br />
+    ・共用PCなどインストールしたくない環境には
+    <a href="./portable/image-converter-portable.html" download="画像かんたん変換.html">ポータブル版（単一HTMLファイル）</a>
+    — 個人フォルダに置いて<b>ダブルクリックするだけ</b>で起動します。インストール不要・機能は同じです。
     <details>
-      <summary>アプリとしてインストールして使う（PC推奨）</summary>
+      <summary>アプリとしてインストールして使う（自分専用のPC向け）</summary>
       <ol>
         <li>Chrome / Edge のアドレスバー右端のインストールアイコン、または上の「アプリとしてインストール」を押すと、独立ウィンドウのアプリになります。</li>
         <li>HEICファイルを右クリック →「プログラムから開く」→「画像かんたん変換」を選ぶと、このアプリで開けます。「常に使う」にすれば以後<b>ダブルクリックで起動</b>します。</li>

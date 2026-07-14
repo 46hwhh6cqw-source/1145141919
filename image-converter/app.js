@@ -382,7 +382,15 @@ $("installBtn").addEventListener("click", async () => {
 });
 window.addEventListener("appinstalled", () => { $("installBtn").hidden = true; });
 
-if ("serviceWorker" in navigator) {
+// ポータブル版（単一HTML・file://起動）ではインストール系の機能を隠す
+const PORTABLE = !!window.__PORTABLE__;
+if (PORTABLE) {
+  $("installBtn").style.display = "none";
+  $("launchSettings").style.display = "none";
+}
+
+if (!PORTABLE && "serviceWorker" in navigator &&
+    (location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname))) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
