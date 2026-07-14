@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>画像かんたん変換 | HEIC→JPG</title>
+  <meta name="theme-color" content="#0E1116" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0E1116;
+      --panel: #161B22;
+      --line: #27313D;
+      --text: #E6EDF3;
+      --muted: #8B97A5;
+      --accent: #F2A93B;
+      --ok: #4FE08A;
+      --err: #F26D6D;
+      --info: #56C2E6;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    }
+    body { padding: 24px; }
+    main { max-width: 1120px; margin: 0 auto; }
+
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    h1 { margin: 4px 0 0; font-size: 26px; letter-spacing: .02em; }
+    .sub { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 620px; }
+    .back {
+      display: inline-block; color: var(--accent); text-decoration: none;
+      font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .top-actions { display: flex; gap: 8px; align-items: center; flex: none; margin-top: 4px; }
+    .top-actions .seg { width: 96px; }
+
+    .layout { display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 16px; margin-top: 20px; align-items: start; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+    }
+    aside.panel { position: sticky; top: 16px; }
+    .lbl { font-size: 12px; color: var(--muted); margin-bottom: 6px; line-height: 1.5; }
+    .setting { margin-top: 14px; }
+    .setting:first-child { margin-top: 0; }
+    .sec {
+      margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line);
+      font-size: 12px; font-weight: 700; color: var(--text);
+    }
+    .seg { display: flex; border: 1px solid #3A434F; border-radius: 8px; overflow: hidden; }
+    .seg button {
+      flex: 1; background: var(--bg); color: var(--muted); border: 0; padding: 9px 2px;
+      font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; white-space: nowrap;
+    }
+    .seg button:hover { color: var(--text); }
+    .seg button.on { background: var(--accent); color: #0E1116; font-weight: 800; }
+    input[type=range] { width: 100%; accent-color: var(--accent); }
+    .chk { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; padding: 5px 0; cursor: pointer; line-height: 1.5; }
+    .chk input { width: 16px; height: 16px; margin-top: 1px; flex: none; accent-color: var(--accent); }
+
+    #drop {
+      border: 2px dashed #3A434F; border-radius: 14px;
+      padding: 30px 16px; text-align: center; cursor: pointer; background: var(--panel);
+    }
+    #drop:hover, #drop:focus-visible { border-color: #55647a; outline: none; }
+    #drop.over { border-color: var(--accent); background: #1B2129; }
+    #drop .big { font-size: 15.5px; font-weight: 700; }
+    #drop .hint { margin-top: 8px; color: var(--muted); font-size: 12.5px; line-height: 1.7; }
+    #drop kbd {
+      border: 1px solid #3A434F; border-bottom-width: 2px; border-radius: 5px;
+      padding: 1px 6px; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text);
+    }
+
+    .toolbar { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+    .btn {
+      cursor: pointer; border: 1px solid #3A434F; border-radius: 10px; padding: 11px 20px;
+      background: var(--bg); color: var(--muted); font-size: 13.5px;
+    }
+    .btn:hover:not(:disabled) { color: var(--text); border-color: #55647a; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #0E1116; font-weight: 800; }
+    .btn.primary:hover:not(:disabled) { color: #0E1116; filter: brightness(1.08); }
+    .btn.ok { background: var(--ok); border-color: var(--ok); color: #0E1116; font-weight: 800; }
+    .btn.ok:hover:not(:disabled) { color: #0E1116; filter: brightness(1.08); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    #summary { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+    #gearBtn { display: none; }
+    #installBtn { border-color: var(--info); color: var(--info); }
+
+    .table-wrap { margin-top: 12px; overflow-x: auto; }
+    .rows { min-width: 800px; list-style: none; margin: 0; padding: 0; }
+    .head, .item {
+      display: grid;
+      grid-template-columns: 52px minmax(150px, 1fr) 148px 146px 104px 56px 70px;
+      gap: 10px; align-items: center; padding: 9px 12px;
+    }
+    .head {
+      color: var(--muted); font-size: 11px; letter-spacing: .06em; padding-bottom: 4px;
+    }
+    .item {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px; margin-top: 8px;
+    }
+    .thumb {
+      width: 52px; height: 52px; border-radius: 8px; background: var(--bg); object-fit: cover;
+      border: 1px solid var(--line);
+    }
+    .fname { font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
+    .ftype { margin-top: 3px; color: var(--muted); font-size: 11.5px; }
+    .c-date, .c-size { font-size: 12px; color: var(--text); white-space: nowrap; }
+    .c-date .t, .c-size .muted { color: var(--muted); }
+    .c-exif { font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+    .c-exif .keep { color: var(--ok); }
+    .c-exif .warn { color: var(--err); }
+    .status { font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .status.wait { color: var(--muted); }
+    .status.run { color: var(--accent); }
+    .status.done { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .dl {
+      display: inline-block; padding: 8px 12px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--ok); color: var(--ok);
+      text-decoration: none; font-size: 12.5px; font-weight: 700; white-space: nowrap;
+    }
+    .dl:hover { background: #17251d; }
+
+    footer { margin-top: 22px; color: var(--muted); font-size: 12px; line-height: 1.9; }
+    footer b { color: var(--text); }
+    footer a { color: var(--accent); }
+    footer details { margin-top: 8px; }
+    footer summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+    footer ol { margin: 8px 0 0; padding-left: 20px; }
+    footer li { margin-top: 4px; }
+
+    /* ===== 小さい画面モード（compact）: 最小限の情報だけ表示し、設定は ⚙ の裏へ ===== */
+    body.compact { padding: 12px; }
+    body.compact .back, body.compact .sub, body.compact .badge, body.compact footer,
+    body.compact .head, body.compact .c-date, body.compact .c-size, body.compact .c-exif,
+    body.compact #drop .hint { display: none; }
+    body.compact h1 { font-size: 16px; margin: 0; }
+    body.compact .top { align-items: center; }
+    body.compact .top-actions { margin-top: 0; }
+    body.compact .layout { grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+    body.compact aside.panel { display: none; }
+    body.compact.settings-open aside.panel {
+      display: block; position: fixed; top: 54px; left: 10px; right: 10px; z-index: 20;
+      max-height: 74vh; overflow: auto; box-shadow: 0 14px 44px rgba(0, 0, 0, .55);
+    }
+    body.compact #drop { padding: 12px; }
+    body.compact #drop .big { font-size: 12.5px; font-weight: 600; }
+    body.compact .toolbar { margin-top: 10px; gap: 6px; }
+    body.compact .btn { padding: 8px 12px; font-size: 12.5px; }
+    body.compact #gearBtn { display: inline-block; }
+    body.compact #installBtn { display: none; }
+    body.compact .table-wrap { overflow-x: hidden; }
+    body.compact .rows { min-width: 0; }
+    body.compact .head, body.compact .item {
+      grid-template-columns: 36px minmax(0, 1fr) 54px 62px; gap: 8px; padding: 7px 9px;
+    }
+    body.compact .thumb { width: 36px; height: 36px; }
+    body.compact .fname { font-size: 12px; }
+    body.compact .ftype { font-size: 10.5px; margin-top: 1px; }
+    body.compact .dl { padding: 6px 9px; font-size: 11.5px; }
+
+    @media (max-width: 880px) {
+      body { padding: 16px; }
+      .layout { grid-template-columns: 1fr; }
+      aside.panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <a class="back" href="../">← 電気学習ラボ トップ</a>
+      <h1>画像かんたん変換</h1>
+      <p class="sub">HEIC・JPG・PNG・WebP・AVIF を相互変換 — EXIF（撮影日時・GPS）を保持したまま。</p>
+    </div>
+    <div class="top-actions">
+      <button id="installBtn" class="btn" hidden>⬇ アプリとしてインストール</button>
+      <button id="gearBtn" class="btn" title="設定">⚙ 設定</button>
+      <div class="seg" id="uiSeg" title="画面サイズ">
+        <button data-v="full" class="on">大</button>
+        <button data-v="compact">小</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel" aria-label="変換設定">
+      <div class="setting">
+        <div class="lbl">出力形式</div>
+        <div class="seg" id="fmtSeg">
+          <button data-v="image/jpeg" class="on">JPG</button>
+          <button data-v="image/png">PNG</button>
+          <button data-v="image/webp">WebP</button>
+        </div>
+      </div>
+      <div class="setting" id="qualityRow">
+        <div class="lbl">画質 <span id="qVal">92%</span></div>
+        <input id="quality" type="range" min="50" max="100" step="1" value="92" />
+      </div>
+      <div class="setting">
+        <div class="lbl">長辺サイズ（縮小のみ）</div>
+        <div class="seg" id="sizeSeg">
+          <button data-v="0" class="on">そのまま</button>
+          <button data-v="4032">4032</button>
+          <button data-v="2048">2048</button>
+          <button data-v="1280">1280</button>
+        </div>
+      </div>
+      <div class="setting">
+        <label class="chk">
+          <input id="keepExif" type="checkbox" checked />
+          <span>EXIF（撮影日時など）を保持</span>
+        </label>
+        <label class="chk">
+          <input id="stripGps" type="checkbox" />
+          <span>位置情報（GPS）を削除</span>
+        </label>
+      </div>
+
+      <div id="launchSettings">
+        <div class="sec">ファイルから起動したとき</div>
+        <div class="setting">
+          <div class="seg" id="launchSeg">
+            <button data-v="add">追加のみ</button>
+            <button data-v="convert">自動変換</button>
+            <button data-v="convertSave" class="on">変換+保存</button>
+          </div>
+        </div>
+        <div class="setting">
+          <div class="lbl">自動保存</div>
+          <div class="seg" id="saveSeg">
+            <button data-v="each" class="on">1枚ずつ</button>
+            <button data-v="zip">ZIP</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section>
+      <div id="drop" tabindex="0" role="button" aria-label="画像を選択">
+        <div class="big">📷 画像をドロップ ／ クリックで選択</div>
+        <div class="hint">HEIC · HEIF · JPG · PNG · WebP · GIF · BMP · AVIF ／ 複数OK ／ <kbd>Ctrl</kbd>+<kbd>V</kbd> 貼り付け</div>
+        <input id="fileInput" type="file" multiple hidden
+               accept=".heic,.heif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif,image/*" />
+      </div>
+
+      <div class="toolbar">
+        <button id="convertBtn" class="btn primary" disabled>変換する</button>
+        <button id="zipBtn" class="btn ok" hidden>ZIP保存</button>
+        <button id="clearBtn" class="btn" disabled>クリア</button>
+        <span id="summary"></span>
+      </div>
+
+      <div class="table-wrap">
+        <ul class="rows" id="list"></ul>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    画像は端末内で処理されます（送信なし・オフライン可）。ZIP保存はファイルの更新日時に撮影日時を設定します。
+    <span id="portableNote"><br />共用PCには
+    <a href="./portable/image-converter-portable.html" download="画像かんたん変換.html">ポータブル版（単一HTML）</a>
+    — 個人フォルダに置いてダブルクリックで起動。インストール不要・機能は同じです。</span>
+    <details id="installHelp">
+      <summary>アプリとしてインストールして使う（自分専用PC向け）</summary>
+      <ol>
+        <li>Chrome / Edge のインストールアイコン、または右上の「アプリとしてインストール」。</li>
+        <li>画像を右クリック →「プログラムから開く」→「画像かんたん変換」。既定にすればダブルクリックで起動。</li>
+        <li>アプリのショートカットに画像をドロップすると「ファイルから起動したとき」の設定どおり自動変換・保存。</li>
+      </ol>
+    </details>
+  </footer>
+</main>
+
+<script src="./converter.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
