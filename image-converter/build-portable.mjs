@@ -23,12 +23,17 @@ const converter = read("converter.js");
 const app = read("app.js");
 const favicon = fs.readFileSync(path.join(dir, "icons/icon-192.png")).toString("base64");
 
-// PWA用のリンク類を除去し、faviconはデータURIで埋め込む
+// PWA用のリンク類と、ポータブル版では意味を持たない要素
+// （サイトへの戻りリンク・ポータブル版DL・インストール手順）を除去し、
+// faviconはデータURIで埋め込む
 html = html
   .replace(/\s*<link rel="manifest"[^>]*\/>/, "")
   .replace(/\s*<link rel="icon"[^>]*\/>/, `\n  <link rel="icon" type="image/png" href="data:image/png;base64,${favicon}" />`)
   .replace(/\s*<link rel="apple-touch-icon"[^>]*\/>/, "")
-  .replace(/<title>[^<]*<\/title>/, "<title>画像かんたん変換（ポータブル版）</title>");
+  .replace(/<title>[^<]*<\/title>/, "<title>画像かんたん変換（ポータブル版）</title>")
+  .replace(/\s*<a class="back"[^>]*>[\s\S]*?<\/a>/, "")
+  .replace(/\s*<span id="portableNote">[\s\S]*?<\/span>/, "")
+  .replace(/\s*<details id="installHelp">[\s\S]*?<\/details>/, "");
 
 // スクリプトをすべてインライン化（vendor は先に読み込ませ、遅延ロードを不要にする）
 const scripts =

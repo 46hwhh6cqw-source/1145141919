@@ -37,10 +37,6 @@
       display: inline-block; color: var(--accent); text-decoration: none;
       font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace;
     }
-    .badge {
-      display: inline-block; margin-top: 10px; border: 1px solid #31536d; border-radius: 999px;
-      padding: 5px 10px; color: var(--ok); font: 700 11px ui-monospace, SFMono-Regular, Menlo, monospace;
-    }
     .top-actions { display: flex; gap: 8px; align-items: center; flex: none; margin-top: 4px; }
     .top-actions .seg { width: 96px; }
 
@@ -66,7 +62,6 @@
     input[type=range] { width: 100%; accent-color: var(--accent); }
     .chk { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; padding: 5px 0; cursor: pointer; line-height: 1.5; }
     .chk input { width: 16px; height: 16px; margin-top: 1px; flex: none; accent-color: var(--accent); }
-    .chk .note { color: var(--muted); font-size: 11.5px; }
 
     #drop {
       border: 2px dashed #3A434F; border-radius: 14px;
@@ -181,13 +176,8 @@
 <main>
   <div class="top">
     <div>
-      <a class="back" href="../">← 電気学習ラボ トップ</a>
       <h1>画像かんたん変換</h1>
-      <p class="sub">
-        HEIC（iPhone写真）をJPGへ、撮影日時・カメラ情報・GPSなどのEXIFを<b>保持したまま</b>変換します。
-        JPG / PNG / WebP / AVIF の相互変換、リサイズ、画質圧縮、位置情報の削除にも対応。
-      </p>
-      <span class="badge">100% 端末内処理 · 画像はどこにも送信されません</span>
+      <p class="sub">HEIC・JPG・PNG・WebP・AVIF を相互変換 — EXIF（撮影日時・GPS）を保持したまま。</p>
     </div>
     <div class="top-actions">
       <button id="installBtn" class="btn" hidden>⬇ アプリとしてインストール</button>
@@ -210,7 +200,7 @@
         </div>
       </div>
       <div class="setting" id="qualityRow">
-        <div class="lbl">画質 <span id="qVal">92%</span>（JPG / WebP のみ）</div>
+        <div class="lbl">画質 <span id="qVal">92%</span></div>
         <input id="quality" type="range" min="50" max="100" step="1" value="92" />
       </div>
       <div class="setting">
@@ -225,18 +215,17 @@
       <div class="setting">
         <label class="chk">
           <input id="keepExif" type="checkbox" checked />
-          <span>EXIFを保持<br /><span class="note">撮影日時・カメラ情報・GPSなど。HEIC→JPGでも日時が残ります</span></span>
+          <span>EXIF（撮影日時など）を保持</span>
         </label>
         <label class="chk">
           <input id="stripGps" type="checkbox" />
-          <span>位置情報（GPS）だけ削除<br /><span class="note">SNS共有用。日時などは残ります</span></span>
+          <span>位置情報（GPS）を削除</span>
         </label>
       </div>
 
       <div id="launchSettings">
         <div class="sec">ファイルから起動したとき</div>
         <div class="setting">
-          <div class="lbl">ダブルクリックやショートカットへのドロップで開いたときの動作</div>
           <div class="seg" id="launchSeg">
             <button data-v="add">追加のみ</button>
             <button data-v="convert">自動変換</button>
@@ -244,7 +233,7 @@
           </div>
         </div>
         <div class="setting">
-          <div class="lbl">自動保存の方法（保存先はダウンロードフォルダ）</div>
+          <div class="lbl">自動保存</div>
           <div class="seg" id="saveSeg">
             <button data-v="each" class="on">1枚ずつ</button>
             <button data-v="zip">ZIP</button>
@@ -255,18 +244,15 @@
 
     <section>
       <div id="drop" tabindex="0" role="button" aria-label="画像を選択">
-        <div class="big">📷 ここに画像をドロップ（ページ内どこでもOK）</div>
-        <div class="hint">
-          クリックでファイル選択 ／ <kbd>Ctrl</kbd>+<kbd>V</kbd> でスクリーンショット等の貼り付け<br />
-          HEIC · HEIF · JPG · PNG · WebP · GIF · BMP · AVIF ／ 複数ファイルOK
-        </div>
+        <div class="big">📷 画像をドロップ ／ クリックで選択</div>
+        <div class="hint">HEIC · HEIF · JPG · PNG · WebP · GIF · BMP · AVIF ／ 複数OK ／ <kbd>Ctrl</kbd>+<kbd>V</kbd> 貼り付け</div>
         <input id="fileInput" type="file" multiple hidden
                accept=".heic,.heif,.jpg,.jpeg,.png,.webp,.gif,.bmp,.avif,image/*" />
       </div>
 
       <div class="toolbar">
         <button id="convertBtn" class="btn primary" disabled>変換する</button>
-        <button id="zipBtn" class="btn ok" hidden>ZIPでまとめて保存</button>
+        <button id="zipBtn" class="btn ok" hidden>ZIP保存</button>
         <button id="clearBtn" class="btn" disabled>クリア</button>
         <span id="summary"></span>
       </div>
@@ -278,22 +264,7 @@
   </div>
 
   <footer>
-    ・変換は<b>すべて端末内で完結</b>します（サーバー送信なし・オフラインでも動作）。<br />
-    ・「ZIPでまとめて保存」では、各ファイルの<b>更新日時に撮影日時を設定</b>します。<br />
-    ・HEICの回転情報は画像自体に反映してから書き出すので、向きがズレることはありません。<br />
-    ・EXIFはJPG / PNG / WebPのどの出力形式でも引き継がれます（GIF・BMP入力にはEXIFがないため対象外）。<br />
-    ・共用PCなどインストールしたくない環境には
-    <a href="./portable/image-converter-portable.html" download="画像かんたん変換.html">ポータブル版（単一HTMLファイル）</a>
-    — 個人フォルダに置いて<b>ダブルクリックするだけ</b>で起動します。インストール不要・機能は同じです。
-    <details>
-      <summary>アプリとしてインストールして使う（自分専用のPC向け）</summary>
-      <ol>
-        <li>Chrome / Edge のアドレスバー右端のインストールアイコン、または上の「アプリとしてインストール」を押すと、独立ウィンドウのアプリになります。</li>
-        <li>HEICファイルを右クリック →「プログラムから開く」→「画像かんたん変換」を選ぶと、このアプリで開けます。「常に使う」にすれば以後<b>ダブルクリックで起動</b>します。</li>
-        <li>デスクトップやタスクバーのアプリアイコン（ショートカット）に画像を<b>ドラッグ＆ドロップするだけで自動変換・自動保存</b>されます（動作は左の「ファイルから起動したとき」で変更できます。設定は大小どちらの画面とも共有です）。</li>
-        <li>画面右上の「大 / 小」で、フル表示と最小表示を切り替えられます。小画面では ⚙ から設定を開きます。</li>
-      </ol>
-    </details>
+    画像は端末内で処理されます（送信なし・オフライン可）。ZIP保存はファイルの更新日時に撮影日時を設定します。
   </footer>
 </main>
 
@@ -1051,7 +1022,7 @@ async function downloadZip() {
     alert("ZIPの作成に失敗しました: " + ((err && err.message) || err));
   }
   zipBtn.disabled = false;
-  zipBtn.textContent = "ZIPでまとめて保存";
+  zipBtn.textContent = "ZIP保存";
 }
 
 // ファイル起動時の自動保存（個別ダウンロード or ZIP）

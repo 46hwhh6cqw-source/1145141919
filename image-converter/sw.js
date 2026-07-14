@@ -1,7 +1,7 @@
 "use strict";
 
 // オフライン動作用サービスワーカー。デプロイ時は CACHE のバージョンを上げる。
-const CACHE = "imgconv-v2";
+const CACHE = "imgconv-v3";
 const ASSETS = [
   "./",
   "./index.html",

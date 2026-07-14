@@ -216,7 +216,7 @@ async function downloadZip() {
     alert("ZIPの作成に失敗しました: " + ((err && err.message) || err));
   }
   zipBtn.disabled = false;
-  zipBtn.textContent = "ZIPでまとめて保存";
+  zipBtn.textContent = "ZIP保存";
 }
 
 // ファイル起動時の自動保存（個別ダウンロード or ZIP）
