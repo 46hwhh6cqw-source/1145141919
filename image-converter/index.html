@@ -227,20 +227,29 @@
       </div>
 
       <div id="launchSettings">
-        <div class="sec">ファイルから起動したとき</div>
+        <div class="sec">画像を受け取ったとき</div>
         <div class="setting">
           <div class="seg" id="launchSeg">
             <button data-v="add">追加のみ</button>
-            <button data-v="convert">自動変換</button>
-            <button data-v="convertSave" class="on">変換+保存</button>
+            <button data-v="convert" class="on">自動変換</button>
+            <button data-v="convertSave">変換+保存</button>
           </div>
         </div>
-        <div class="setting">
-          <div class="lbl">自動保存</div>
-          <div class="seg" id="saveSeg">
-            <button data-v="each" class="on">1枚ずつ</button>
-            <button data-v="zip">ZIP</button>
-          </div>
+      </div>
+
+      <div class="sec">保存</div>
+      <div class="setting" id="destRow">
+        <div class="seg" id="destSeg">
+          <button data-v="download" class="on">ダウンロード</button>
+          <button data-v="folder">フォルダに直接</button>
+        </div>
+        <div class="lbl" id="destInfo" style="margin: 6px 0 0"></div>
+      </div>
+      <div class="setting" id="saveRow">
+        <div class="lbl">自動保存</div>
+        <div class="seg" id="saveSeg">
+          <button data-v="each" class="on">1枚ずつ</button>
+          <button data-v="zip">ZIP</button>
         </div>
       </div>
     </aside>
@@ -276,7 +285,7 @@
       <ol>
         <li>Chrome / Edge のインストールアイコン、または右上の「アプリとしてインストール」。</li>
         <li>画像を右クリック →「プログラムから開く」→「画像かんたん変換」。既定にすればダブルクリックで起動。</li>
-        <li>アプリのショートカットに画像をドロップすると「ファイルから起動したとき」の設定どおり自動変換・保存。</li>
+        <li>アプリのショートカットに画像をドロップすると「画像を受け取ったとき」の設定どおり自動変換・保存。</li>
       </ol>
     </details>
   </footer>
