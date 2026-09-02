@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0d12">
+<title>TSURU</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0d12;--card:#121821;--card2:#0f141c;--line:#253141;--text:#f4f7fb;--muted:#8390a3;--accent:#78e08f;--danger:#ff7d7d;--blue:#78b9ff}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic UI",Meiryo,sans-serif}button,input{font:inherit}
+body{padding:24px}.app{width:min(760px,100%);margin:0 auto}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{font-size:20px;font-weight:900;letter-spacing:.24em}.net{width:8px;height:8px;border-radius:50%;background:#536071;box-shadow:0 0 0 4px rgba(83,96,113,.10)}.net.on{background:var(--accent);box-shadow:0 0 14px rgba(120,224,143,.65)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;background:#0d1219;border:1px solid var(--line);border-radius:14px;margin-bottom:14px}.tab{border:0;border-radius:10px;padding:11px 8px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer}.tab.on{background:#1a2330;color:var(--text)}
+.panel{display:none}.panel.on{display:block}.box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}.pick{border:1px dashed #36465b;background:var(--card2);border-radius:16px;padding:34px 18px;text-align:center;transition:.12s}.pick.over{border-color:var(--accent);background:#111d19}.pick-title{font-size:15px;font-weight:800;color:#cfd7e4;margin-bottom:15px}.row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}.btn{border:1px solid #344257;background:#111823;color:var(--text);border-radius:11px;padding:11px 17px;font-weight:800;cursor:pointer;min-width:112px}.btn:hover{border-color:#536883}.btn.main{background:var(--text);color:#0a0d12;border-color:var(--text)}.btn.green{background:var(--accent);color:#07100a;border-color:var(--accent)}.btn.blue{background:var(--blue);color:#07101a;border-color:var(--blue)}.btn.ghost{background:transparent;color:var(--muted);border-color:transparent;min-width:0}.btn:disabled{opacity:.38;cursor:default}
+.bundle{display:none;margin-top:12px;padding:15px 16px;border:1px solid var(--line);border-radius:14px;background:#0f151e}.bundle.show{display:flex;align-items:center;justify-content:space-between;gap:12px}.bundle-name{font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bundle-meta{font-size:12px;color:var(--muted);margin-top:4px}.xbtn{border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;padding:6px}
+.codewrap{display:none;margin-top:14px;text-align:center;padding:20px;border-radius:16px;border:1px solid var(--line);background:#0d131b}.codewrap.show{display:block}.code{font-variant-numeric:tabular-nums;font-size:48px;font-weight:900;letter-spacing:.16em;line-height:1;margin-left:.16em}.ttl{font-size:12px;color:var(--muted);margin-top:10px}.status{min-height:22px;margin-top:12px;text-align:center;color:var(--muted);font-size:13px}.status.ok{color:var(--accent)}.status.err{color:var(--danger)}
+.progress{height:7px;background:#0b1016;border-radius:99px;overflow:hidden;margin-top:12px;display:none}.progress.show{display:block}.bar{height:100%;width:0;background:var(--accent);transition:width .08s linear}
+.recv{padding:28px 18px}.codeinput{display:block;width:min(360px,100%);margin:0 auto 14px;border:1px solid #344257;border-radius:14px;background:#0d131b;color:var(--text);font-size:36px;font-weight:900;letter-spacing:.18em;text-align:center;padding:15px 10px;font-variant-numeric:tabular-nums;outline:none}.codeinput:focus{border-color:var(--blue)}.codeinput::placeholder{color:#344050}.recv .btn{display:block;margin:0 auto}.incoming{display:none;margin-top:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:#0f151e}.incoming.show{display:block}.incoming-name{font-weight:850}.incoming-meta{color:var(--muted);font-size:12px;margin-top:4px}
+.zipchoice{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bigchoice{min-height:118px;border:1px solid var(--line);background:#0f151e;border-radius:16px;color:var(--text);font-size:16px;font-weight:850;cursor:pointer}.bigchoice:hover{border-color:#536883}.zipwork{display:none;margin-top:12px}.zipwork.show{display:block}.ziphead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.hidden{display:none!important}.saveLink{display:none;text-decoration:none;text-align:center;margin-top:10px}.saveLink.show{display:block}
+@media(max-width:560px){body{padding:14px}.box{padding:14px}.pick{padding:28px 12px}.code{font-size:40px}.btn{padding:11px 14px}.zipchoice{grid-template-columns:1fr}.bigchoice{min-height:90px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top"><div class="brand">TSURU</div><div id="net" class="net"></div></div>
+  <div class="tabs">
+    <button class="tab on" data-tab="send">送る</button>
+    <button class="tab" data-tab="recv">受け取る</button>
+    <button class="tab" data-tab="zip">ZIP</button>
+  </div>
+
+  <section id="send" class="panel on">
+    <div class="box">
+      <div id="sendPick" class="pick">
+        <div class="pick-title">ここにドロップ</div>
+        <div class="row">
+          <button id="sendFilesBtn" class="btn main">ファイル</button>
+          <button id="sendFolderBtn" class="btn">フォルダ</button>
+        </div>
+      </div>
+      <input id="sendFiles" class="hidden" type="file" multiple>
+      <input id="sendFolder" class="hidden" type="file" webkitdirectory directory multiple>
+      <div id="sendBundle" class="bundle"><div><div id="sendName" class="bundle-name"></div><div id="sendMeta" class="bundle-meta"></div></div><button id="sendClear" class="xbtn" aria-label="解除">×</button></div>
+      <div id="sendCodeWrap" class="codewrap"><div id="sendCode" class="code">------</div><div id="sendTtl" class="ttl"></div></div>
+      <div id="sendProgress" class="progress"><div id="sendBar" class="bar"></div></div>
+      <div id="sendStatus" class="status"></div>
+    </div>
+  </section>
+
+  <section id="recv" class="panel">
+    <div class="box recv">
+      <input id="recvCode" class="codeinput" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000" aria-label="6桁コード">
+      <button id="recvBtn" class="btn blue">受け取る</button>
+      <div id="recvIncoming" class="incoming"><div id="recvName" class="incoming-name"></div><div id="recvMeta" class="incoming-meta"></div></div>
+      <div id="recvProgress" class="progress"><div id="recvBar" class="bar"></div></div>
+      <div id="recvStatus" class="status"></div>
+      <a id="recvSave" class="btn green saveLink" href="#">保存</a>
+    </div>
+  </section>
+
+  <section id="zip" class="panel">
+    <div class="box">
+      <div id="zipChoice" class="zipchoice">
+        <button id="packChoice" class="bigchoice">まとめる</button>
+        <button id="unpackChoice" class="bigchoice">展開</button>
+      </div>
+      <div id="zipWork" class="zipwork">
+        <div class="ziphead"><span id="zipModeLabel"></span><button id="zipBack" class="btn ghost">戻る</button></div>
+        <div id="packUi" class="hidden">
+          <div id="packPick" class="pick">
+            <div class="pick-title">ここにドロップ</div>
+            <div class="row"><button id="packFilesBtn" class="btn main">ファイル</button><button id="packFolderBtn" class="btn">フォルダ</button></div>
+          </div>
+          <input id="packFiles" class="hidden" type="file" multiple>
+          <input id="packFolder" class="hidden" type="file" webkitdirectory directory multiple>
+          <div id="packBundle" class="bundle"><div><div id="packName" class="bundle-name"></div><div id="packMeta" class="bundle-meta"></div></div><button id="packClear" class="xbtn">×</button></div>
+          <div class="row" style="margin-top:12px"><button id="packSave" class="btn green" disabled>ZIP保存</button></div>
+          <div id="packProgress" class="progress"><div id="packBar" class="bar"></div></div><div id="packStatus" class="status"></div>
+        </div>
+        <div id="unpackUi" class="hidden">
+          <div id="unpackPick" class="pick"><div class="pick-title">ZIPを選ぶ</div><div class="row"><button id="unpackFileBtn" class="btn main">ZIP</button></div></div>
+          <input id="unpackFile" class="hidden" type="file" accept=".zip,application/zip">
+          <div id="unpackBundle" class="bundle"><div><div id="unpackName" class="bundle-name"></div><div id="unpackMeta" class="bundle-meta"></div></div><button id="unpackClear" class="xbtn">×</button></div>
+          <div class="row" style="margin-top:12px"><button id="unpackRun" class="btn green" disabled>展開</button></div>
+          <div id="unpackProgress" class="progress"><div id="unpackBar" class="bar"></div></div><div id="unpackStatus" class="status"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
