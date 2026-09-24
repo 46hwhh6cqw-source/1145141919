@@ -1,0 +1,1216 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VTR250 キャブ車のしくみ</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#EEF1F3; --surface:#FFFFFF; --ink:#18212B; --muted:#4F5C69; --line:#C3CCD4; --soft:#E3E8EC;
+  --fuel:#B96A00; --fuel-fill:#F0B040; --fuel-pale:#F7DDA6;
+  --air:#2462C4; --exh:#6A727C; --power:#6E3FBF; --cool:#08858F; --oil:#85552A; --elec:#5F7C00; --vac:#4E5E93;
+  --danger:#C22A24; --danger-bg:#FCEDEC; --hl:#D1206A; --ok:#1E7B45;
+  --metal:#B3BDC6; --metal-dark:#6F7B87; --body:#D9E0E6; --body2:#C8D1D9; --paper:#F7F9FA;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#10151B; --surface:#19212A; --ink:#E5EAF0; --muted:#A1ADB9; --line:#35424F; --soft:#222C37;
+    --fuel:#F0A02A; --fuel-fill:#C9861E; --fuel-pale:#5A4520;
+    --air:#6FA3FF; --exh:#A3AAB3; --power:#B391F7; --cool:#3FC6D0; --oil:#CB935D; --elec:#B3D23A; --vac:#98A8DD;
+    --danger:#FF6E66; --danger-bg:#3A1D1C; --hl:#FF5C9E; --ok:#5FD08E;
+    --metal:#55616D; --metal-dark:#8E9AA6; --body:#2C3641; --body2:#38434F; --paper:#141B22;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#10151B; --surface:#19212A; --ink:#E5EAF0; --muted:#A1ADB9; --line:#35424F; --soft:#222C37;
+  --fuel:#F0A02A; --fuel-fill:#C9861E; --fuel-pale:#5A4520;
+  --air:#6FA3FF; --exh:#A3AAB3; --power:#B391F7; --cool:#3FC6D0; --oil:#CB935D; --elec:#B3D23A; --vac:#98A8DD;
+  --danger:#FF6E66; --danger-bg:#3A1D1C; --hl:#FF5C9E; --ok:#5FD08E;
+  --metal:#55616D; --metal-dark:#8E9AA6; --body:#2C3641; --body2:#38434F; --paper:#141B22;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;
+  font-size:17px;line-height:1.75;padding-inline:16px;padding-block:12px 48px}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:23px;line-height:1.35;margin:4px 0 0;text-wrap:balance}
+h2{font-size:21px;line-height:1.4;margin:0;text-wrap:balance}
+h3{font-size:18px;line-height:1.45;margin:0}
+p{margin:0}
+a{color:var(--air)}
+.lead{color:var(--muted);font-size:16px}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (min-width:640px){.nav{grid-template-columns:repeat(6,1fr)}}
+.nav button{min-height:52px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;
+  font:inherit;font-size:15px;line-height:1.25;padding:6px 4px;cursor:pointer}
+.nav button b{display:block;font-size:17px}
+.nav button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+section.ch{display:flex;flex-direction:column;gap:16px}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.fig{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.fig-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px;border-bottom:1px solid var(--line);background:var(--surface)}
+.fig-bar .cap{font-size:15px;color:var(--muted);line-height:1.35;flex:1;min-width:0}
+.fig-bar .tools{display:flex;gap:6px;flex-shrink:0}
+.fig-scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+.fig svg{display:block;width:100%;height:auto;max-width:none}
+.fig.zoomed{position:fixed;inset:0;z-index:100;border-radius:0;border:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.fig.zoomed .fig-scroll{flex:1}
+.fig.zoomed svg{width:calc(var(--z,2) * 100%)}
+.fig .zin,.fig .zout{display:none}
+.fig.zoomed .zin,.fig.zoomed .zout{display:inline-block}
+.btn{min-height:44px;min-width:44px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;
+  font:inherit;font-size:16px;line-height:1.2;padding:8px 12px;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:focus-visible,.nav button:focus-visible,.seg button:focus-visible,.chip:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{min-height:44px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;
+  font:inherit;font-size:16px;line-height:1.3;padding:8px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl>span{font-size:15px;color:var(--muted);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:22px;
+  font:inherit;font-size:16px;line-height:1.3;padding:8px 14px;cursor:pointer;text-align:left}
+.chip .no{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:14px;background:var(--soft);font-weight:700;font-size:15px;margin-right:6px;padding:0 5px}
+.chip[aria-pressed="true"]{border-color:var(--hl);box-shadow:inset 0 0 0 1.5px var(--hl)}
+.chip[aria-pressed="true"] .no{background:var(--hl);color:#fff}
+.info{border:2px solid var(--hl);border-radius:12px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:6px}
+.info h3{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.info dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+.info dt{font-weight:700;color:var(--muted);font-size:15px;padding-top:2px}
+.info dd{margin:0}
+.tag{display:inline-block;font-size:14px;line-height:1.3;padding:2px 8px;border-radius:6px;border:1.5px solid var(--muted);color:var(--muted);font-weight:600;white-space:nowrap}
+.tag.car{border-style:solid;color:var(--ok);border-color:var(--ok)}
+.tag.gen{border-style:dashed}
+.tag.unk{border-style:dotted;color:var(--danger);border-color:var(--danger)}
+.src{font-size:14px;vertical-align:super;line-height:0;color:var(--air);font-weight:700;text-decoration:none;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:15px;line-height:1.4}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{width:40px;height:14px;flex-shrink:0}
+.status{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;font-size:16px;line-height:1.5}
+.status dt{font-weight:700;color:var(--muted);font-size:15px;padding-top:1px}
+.status dd{margin:0}
+.state-pill{display:inline-block;padding:0 8px;border-radius:6px;font-weight:700;border:1.5px solid currentColor}
+.st-open{color:var(--ok)} .st-closed{color:var(--muted)} .st-warn{color:var(--danger)}
+.why{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:16px}
+.warn{border:2px solid var(--danger);background:var(--danger-bg);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.warn h3{color:var(--danger)}
+.warn ul{margin:0;padding-left:1.2em}
+ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+ol.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.note{font-size:15px;color:var(--muted);line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:640px){.row2{grid-template-columns:1fr 1fr}}
+.facts{display:grid;grid-template-columns:1fr;gap:10px}
+.facts>div{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface)}
+.facts h3{font-size:16px;margin-bottom:4px}
+.srclist{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.srclist li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);font-size:15px;line-height:1.6;overflow-wrap:anywhere}
+.srclist b{font-size:16px}
+.srclist .k{color:var(--muted);font-weight:700}
+.pager{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.stepbar{display:flex;gap:8px;flex-wrap:wrap}
+.kicker{font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+@keyframes fd10{to{stroke-dashoffset:-20}}
+@keyframes fd17{to{stroke-dashoffset:-34}}
+@keyframes fd8{to{stroke-dashoffset:-16}}
+.motion .mv{animation:fd10 .8s linear infinite}
+.motion .mv17{animation:fd17 1.3s linear infinite}
+.motion .mv8{animation:fd8 .8s linear infinite}
+.motion .mvs{animation:fd10 1.6s linear infinite}
+svg text{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif}
+.hit{cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <marker id="arF" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--fuel)"/></marker>
+    <marker id="arA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--air)"/></marker>
+    <marker id="arE" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--exh)"/></marker>
+    <marker id="arP" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--power)"/></marker>
+    <marker id="arC" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--cool)"/></marker>
+    <marker id="arL" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--elec)"/></marker>
+    <marker id="arD" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--danger)"/></marker>
+    <marker id="arV" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--vac)"/></marker>
+    <marker id="arK" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker>
+    <pattern id="hatchFuel" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--fuel-pale)"/><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--fuel-fill);stroke-width:2"/></pattern>
+  </defs>
+</svg>
+
+<main>
+  <header style="display:flex;flex-direction:column;gap:6px">
+    <p class="kicker">ホンダ VTR（250cc）キャブレター仕様</p>
+    <h1>VTR250 キャブ車のしくみ：燃料・吸気・燃料漏れを図で追う</h1>
+    <p class="lead">対象は1997年11月発表のVTRから、2009年2月発表でPGM-FI（燃料噴射）に替わる前までのキャブレター仕様です<a class="src" href="#src1">[1]</a><a class="src" href="#src3">[3]</a>。構造の主な裏付けは、Honda（豪州）発行の「VTR 250 Workshop Manual」（フレーム番号MC33-1000001〜）です<a class="src" href="#src18">[18・1-6]</a>。年式ごとの細かな違いと、あなたの車両の状態は確認できていません。</p>
+    <div class="legend" aria-label="表記のルール">
+      <span><i class="tag car">車種資料</i> VTRの資料で確認</span>
+      <span><i class="tag gen">一般構造</i> 原理を示す模式</span>
+      <span><i class="tag unk">未確認</i> 資料で確かめられていない</span>
+    </div>
+    <div class="stepbar" style="align-items:center"><button class="btn" id="motion" aria-pressed="true">動き：あり（押すと止まる）</button><span class="note">動きは流れや部品の動きを示すためのもので、止めても図は読めます。</span></div>
+  </header>
+
+  <nav class="nav" id="nav" aria-label="章の選択">
+    <button data-ch="a" aria-pressed="true"><b>A</b>車体の全体</button>
+    <button data-ch="b" aria-pressed="false"><b>B</b>タンク→キャブ</button>
+    <button data-ch="c" aria-pressed="false"><b>C</b>キャブの中</button>
+    <button data-ch="d" aria-pressed="false"><b>D</b>正常と異常</button>
+    <button data-ch="e" aria-pressed="false"><b>E</b>今回の燃料漏れ</button>
+    <button data-ch="s" aria-pressed="false"><b>出典</b>資料一覧</button>
+  </nav>
+
+  <!-- ===================== A ===================== -->
+  <section class="ch" id="ch-a" aria-labelledby="h-a">
+    <h2 id="h-a">A　車体のどこで、何が起こるか</h2>
+    <p>左側から見た車体の模式図です。部品の番号や名前をタップすると、図の該当部分が強調され、下に役割とつながる相手が出ます。</p>
+    <div class="ctl"><span>表示する系統</span>
+      <div class="seg" id="a-layer">
+        <button data-v="flow" aria-pressed="true">燃料・空気・排気</button>
+        <button data-v="power" aria-pressed="false">動力の伝わり方</button>
+        <button data-v="support" aria-pressed="false">冷却・オイル・電気</button>
+      </div>
+    </div>
+    <div class="fig" id="fig-a">
+      <div class="fig-bar"><div class="cap" id="a-cap">左側面の模式図（前が左）</div>
+        <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+      <div class="fig-scroll"><svg id="svg-a" viewBox="0 0 360 262" role="img" aria-label="VTR250の車体と主要部品の位置"></svg></div>
+    </div>
+    <div class="legend" id="a-legend"></div>
+    <div class="chips" id="a-parts"></div>
+    <div id="a-info"></div>
+    <div class="why" id="a-text"></div>
+
+    <div class="block">
+      <h3>エンジンの中の4つの行程</h3>
+      <p>前後2つのシリンダーはそれぞれ、この4つの行程を繰り返して、同じクランク軸を回します。ボタンで行程を切り替えます。</p>
+      <div class="stepbar"><button class="btn primary" id="st-play">⏸ 止める</button></div>
+      <div class="seg" id="st-sel">
+        <button data-v="0" aria-pressed="true">1 吸気</button>
+        <button data-v="1" aria-pressed="false">2 圧縮</button>
+        <button data-v="2" aria-pressed="false">3 燃焼・膨張</button>
+        <button data-v="3" aria-pressed="false">4 排気</button>
+      </div>
+      <div class="fig" id="fig-st">
+        <div class="fig-bar"><div class="cap">1つのシリンダーの断面（一般構造の模式）</div>
+          <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+        <div class="fig-scroll"><svg id="svg-st" viewBox="0 0 360 270" role="img" aria-label="4ストロークの行程"></svg></div>
+      </div>
+      <p class="why" id="st-text"></p>
+    </div>
+    <div class="pager"><span></span><button class="btn" data-go="b">次：B タンク→キャブ</button></div>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section class="ch" id="ch-b" aria-labelledby="h-b" hidden>
+    <h2 id="h-b">B　タンクからキャブまで</h2>
+    <p>燃料はタンク①の後ろ下の燃料自動コック②から、燃料ホース④を通り、前後キャブの間の燃料継手⑤で分かれて前後2つのキャブ⑥へ下ります<a class="src" href="#src18">[18・2-3]</a><a class="src" href="#src18">[18・6-16]</a>。コックはエンジンの負圧（大気圧より低い圧力）で開く<b>負圧作動部</b>つきで、負圧は<b>後ろシリンダーヘッドの負圧ホース継手</b>から負圧ホース③で取っています<a class="src" href="#src18">[18・6-3]</a><a class="src" href="#src18">[18・6-20]</a>。</p>
+    <div class="fig" id="fig-b">
+      <div class="fig-bar"><div class="cap">タンク～キャブの経路。コック内部は模式 <span class="tag gen">一般構造</span></div>
+        <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+      <div class="fig-scroll"><svg id="svg-b" viewBox="0 0 360 470" role="img" aria-label="燃料タンクからキャブまでの経路"></svg></div>
+    </div>
+    <div id="b-info"></div>
+    <dl class="status" id="b-status"></dl>
+    <p class="why" id="b-why"></p>
+    <div class="ctl"><span>コックのレバー</span><div class="seg" id="b-lever"><button data-v="ON" aria-pressed="true">ON</button><button data-v="RES" aria-pressed="false">RES</button><button data-v="OFF" aria-pressed="false">OFF</button></div></div>
+    <div class="ctl"><span>エンジン</span><div class="seg" id="b-engine"><button data-v="run" aria-pressed="true">回っている（負圧あり）</button><button data-v="stop" aria-pressed="false">止まっている（負圧なし）</button></div></div>
+    <div class="ctl"><span>タンクの燃料</span><div class="seg" id="b-tank"><button data-v="many" aria-pressed="true">多い</button><button data-v="few" aria-pressed="false">少ない（ONの口より下）</button></div></div>
+    <div class="ctl"><span>負圧作動部の弁</span><div class="seg" id="b-vac"><button data-v="ok" aria-pressed="true">正常</button><button data-v="bad" aria-pressed="false">閉じきらない（不調の例）</button></div></div>
+    <div class="chips" id="b-parts"></div>
+    <div class="block">
+      <h3>RESは「予備のタンク」ではない</h3>
+      <ul class="plain">
+        <li>タンクは1つで、容量13Lです<a class="src" href="#src1">[1]</a>。RESの分もこの中に含まれます。</li>
+        <li>ONは高い位置の口、RESは底に近い口から燃料を取ります。ONで燃料が来なくなるのは、油面がONの口より下がったためです。<span class="tag gen">一般構造</span></li>
+        <li>RESを選ぶこと自体は、燃料を止める働き（負圧作動部の弁）とは別の話です。負圧作動部が正常なら、ONでもRESでも、エンジンが止まれば弁が閉じます<a class="src" href="#src6">[6]</a><a class="src" href="#src7">[7]</a>。</li>
+        <li>マニュアルの点検基準は「負圧をかけて燃料がスムーズに流れること。負圧をかけずに流れるならダイヤフラムを交換」です<a class="src" href="#src18">[18・6-3]</a>。止める働きは負圧作動部が受け持っています。</li>
+        <li>負圧コックの中には、負圧なしでも流す「PRI」位置を持つ型があります。マニュアルには「OFFにする」という記載はあります<a class="src" href="#src18">[18・2-3]</a>が、レバー位置の一覧はありません。あなたの車両のコックの表示はON・RES・OFFと聞いているので、図はこの3位置で描いています。<span class="tag unk">未確認</span></li>
+      </ul>
+    </div>
+    <div class="pager"><button class="btn" data-go="a">前：A</button><button class="btn" data-go="c">次：C キャブの中</button></div>
+  </section>
+
+  <!-- ===================== C ===================== -->
+  <section class="ch" id="ch-c" aria-labelledby="h-c" hidden>
+    <h2 id="h-c">C　キャブの外から中へ</h2>
+    <p>車体の中の位置、2個のキャブの外形、1個の断面の順に近づきます。断面図の左上の小さい図は、いま車体のどこを見ているかの目印です（赤い枠）。</p>
+    <div class="seg" id="c-step">
+      <button data-v="1" aria-pressed="false">1 車体の中の位置</button>
+      <button data-v="2" aria-pressed="false">2 キャブ2個の外形</button>
+      <button data-v="3" aria-pressed="true">3 1個の断面</button>
+    </div>
+    <div id="c-view3-tabs" class="ctl"><span>断面で見る内容</span>
+      <div class="seg" id="c-tab"><button data-v="float" aria-pressed="true">フロート室（燃料をためる）</button><button data-v="suck" aria-pressed="false">燃料が吸い出される仕組み</button></div>
+    </div>
+    <div class="fig" id="fig-c">
+      <div class="fig-bar"><div class="cap" id="c-cap"></div>
+        <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+      <div class="fig-scroll"><svg id="svg-c" viewBox="0 0 360 470" role="img" aria-label="キャブレター"></svg></div>
+    </div>
+    <div id="c-suck-ctl" class="ctl" hidden><span>スロットル（アクセル）</span>
+      <div class="seg" id="c-thr"><button data-v="0" aria-pressed="true">ほぼ閉（アイドリング）</button><button data-v="0.5" aria-pressed="false">半分</button><button data-v="1" aria-pressed="false">全開</button><button data-v="sweep" aria-pressed="false">自動で開け閉め</button></div>
+      <span>始動用の濃化（チョークレバー）</span>
+      <div class="seg" id="c-st"><button data-v="0" aria-pressed="true">使わない</button><button data-v="1" aria-pressed="false">引いた状態</button></div>
+    </div>
+    <div class="chips" id="c-parts"></div>
+    <div id="c-info"></div>
+    <div class="why" id="c-text"></div>
+    <div class="pager"><button class="btn" data-go="b">前：B</button><button class="btn" data-go="d">次：D 正常と異常</button></div>
+  </section>
+
+  <!-- ===================== D ===================== -->
+  <section class="ch" id="ch-d" aria-labelledby="h-d" hidden>
+    <h2 id="h-d">D　正常と異常を、同じ断面で比べる</h2>
+    <p>Cと同じ断面で、フロート室の油面・フロート・フロートバルブ・流れを1つの状態から同時に描きます。<b>作用を理解するための定性的な模型</b>で、流量・時間・油面の高さは実物の値ではありません。</p>
+    <div class="ctl"><span>比べる例（選ぶと最初から動き出します）</span>
+      <div class="seg" id="d-preset">
+        <button data-v="p1" aria-pressed="true">① 正常（走行中）</button>
+        <button data-v="p2" aria-pressed="false">② 正常なバルブが止める（停車中・上流が開いたまま）</button>
+        <button data-v="p3" aria-pressed="false">③ バルブが密閉しない＋上流が開いたまま</button>
+        <button data-v="p4" aria-pressed="false">④ バルブが密閉しない＋負圧コック正常（停車中）</button>
+        <button data-v="p5" aria-pressed="false">⑤ 走行中にコックをOFF</button>
+      </div>
+    </div>
+    <div class="stepbar">
+      <button class="btn primary" id="d-play">▶ 進める</button>
+      <button class="btn" id="d-step">1コマ進める</button>
+      <button class="btn" id="d-reset">初期状態に戻す</button>
+    </div>
+    <div class="fig" id="fig-d">
+      <div class="fig-bar"><div class="cap" id="d-cap">上：タンク～ホースの状態／下：キャブ断面（Cと同じ図）</div>
+        <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+      <div class="fig-scroll"><svg id="svg-d" viewBox="0 0 360 560" role="img" aria-label="フロート室の状態"></svg></div>
+    </div>
+    <dl class="status" id="d-status"></dl>
+    <p class="why" id="d-why"></p>
+    <details class="block">
+      <summary style="font-weight:700;cursor:pointer;min-height:32px">条件を個別に変える</summary>
+      <div class="ctl"><span>エンジン（燃料の消費と負圧）</span><div class="seg" id="d-engine"><button data-v="run">回っている</button><button data-v="stop">止まっている</button></div></div>
+      <div class="ctl"><span>コックのレバー</span><div class="seg" id="d-lever"><button data-v="ON">ON</button><button data-v="RES">RES</button><button data-v="OFF">OFF</button></div></div>
+      <div class="ctl"><span>負圧作動部の弁</span><div class="seg" id="d-vac"><button data-v="ok">正常</button><button data-v="bad">閉じきらない</button></div></div>
+      <div class="ctl"><span>フロートまわり</span><div class="seg" id="d-fv"><button data-v="ok">正常</button><button data-v="debris">バルブとシートの間に異物</button><button data-v="sunk">フロートに燃料が入り浮かない</button></div></div>
+      <p class="note">条件を変えても油面はそのまま続きから動きます。タンクには、選んだ取り出し口から流れるだけの燃料があるとしています。</p>
+    </details>
+    <div class="pager"><button class="btn" data-go="c">前：C</button><button class="btn" data-go="e">次：E 今回の燃料漏れ</button></div>
+  </section>
+
+  <!-- ===================== E ===================== -->
+  <section class="ch" id="ch-e" aria-labelledby="h-e" hidden>
+    <h2 id="h-e">E　今回の燃料漏れと結びつける</h2>
+    <div class="warn" role="note">
+      <h3>危険：燃料のにおいが強い・漏れが続く・エンジン側への流入が疑われるとき</h3>
+      <ul>
+        <li>エンジンをかけない。セルモーターも回さない。</li>
+        <li>火気・火花・高温のものを近づけない。屋内なら換気する。</li>
+        <li>漏れた燃料は拭き取り、布は屋外で乾かすなど火の気のない所で扱う。</li>
+      </ul>
+    </div>
+    <div class="facts">
+      <div><h3>観察した事実（依頼文より）</h3>
+        <ul class="plain"><li>燃料漏れがあった。</li><li>漏れた当時、燃料コックのレバーはRESだった。</li><li>その後、OFFにした。</li></ul></div>
+      <div><h3>この事実から言えること・言えないこと</h3>
+        <ul class="plain">
+          <li>RESは底に近い口を使う位置で、止め方が特別な位置ではありません。「RESだったから漏れた」とは言えません。</li>
+          <li>純正の負圧コックが正常なら、エンジン停止中はRESでも流れが止まります<a class="src" href="#src6">[6]</a>。停止中に漏れ続けたなら、負圧作動部より上流の漏れか、負圧作動部が閉じきらないことが関わっている可能性があります。</li>
+          <li>走行中や停止直後の漏れなら、上流が開いている間の供給や、ホースに残った燃料でも説明がつきます。</li>
+          <li>OFFの後も垂れるなら、コックとタンクの間（OFFでは止まらない所）か、ホースとフロート室に残った分が出切るまでの漏れが考えられます。</li>
+        </ul></div>
+    </div>
+    <div class="fig" id="fig-e">
+      <div class="fig-bar"><div class="cap">漏れる可能性がある所（E1～E6）。実線＝燃料、破線の赤＝あふれた時の行き先</div>
+        <div class="tools"><button class="btn zout" data-zoom="-" aria-label="縮小">－</button><button class="btn zin" data-zoom="+" aria-label="拡大率を上げる">＋</button><button class="btn" data-zoom="toggle">拡大</button></div></div>
+      <div class="fig-scroll"><svg id="svg-e" viewBox="0 0 360 540" role="img" aria-label="燃料漏れの可能性がある箇所"></svg></div>
+    </div>
+    <div class="chips" id="e-parts"></div>
+    <div id="e-info"></div>
+    <div class="block">
+      <h3>燃料がエンジン側へ入る条件</h3>
+      <ol class="steps">
+        <li>上流が開いている（走行中、または停車中に負圧作動部が閉じきらない）。</li>
+        <li>フロートバルブが燃料を止められない（異物・先端やシートの傷み、フロートの浸水など）<a class="src" href="#src11">[11]</a>。</li>
+        <li>フロート室が満杯になり、燃料がニードルジェットなどの通路からベンチュリへ出る。オーバーフロー管のないキャブでは、この燃料が吸気側へ流れます<a class="src" href="#src10">[10]</a><a class="src" href="#src11">[11]</a>。VTR250のマニュアルも、始動不良の原因として「シリンダー内の燃料過多 — キャブのオーバーフロー」を挙げています<a class="src" href="#src18">[18・6-2]</a>。</li>
+        <li>吸気バルブが開いた位置で止まっているシリンダーに、液体の燃料がたまることがあります。2006年式VTR250で前シリンダーに燃料がたまっていたという利用者の報告があります<a class="src" href="#src9">[9]</a>。</li>
+      </ol>
+      <p>液体は圧縮できないため、燃料がたまったままセルを回すと部品を傷める恐れがあります<a class="src" href="#src10">[10]</a>。また、燃料がピストンリングのすき間からクランクケースへ落ちると、エンジンオイルが燃料で薄まる可能性があります。<span class="tag gen">一般構造</span></p>
+      <p class="note">オイル量の増加やオイルのガソリン臭は手がかりになります。ただ、油面は車体の傾き・温度・測り方で変わり、道路の染みも別の漏れと区別できません。油面だけで「混入した」と決めないでください。マニュアルの燃料系の章には、キャブのオーバーフロー管は出てきません。各キャブにはエアベントチューブが1本ずつあり、後ろ点火コイル付近で束ねられています<a class="src" href="#src18">[18・1-28]</a>。マニュアル内の「Overflow tube」は冷却水リザーブの管です<a class="src" href="#src18">[18・5-0]</a><a class="src" href="#src18">[18・6-5]</a>。エアベントチューブの先端がどこに開くかは、図から確定できません。<span class="tag unk">未確認</span></p>
+    </div>
+    <div class="block">
+      <h3>現車で確認できていない点</h3>
+      <ul class="plain">
+        <li>年式・型式、改造や部品交換の有無（コックが純正の負圧式か、負圧ホースがつながっているか）。</li>
+        <li>漏れていた場所（どの部品の、どの高さから垂れていたか）。</li>
+        <li>漏れていたタイミング（走行中か、停車中か、止めてからどのくらい続いたか）。</li>
+        <li>OFFにした後に止まったか。</li>
+        <li>各ホースの接続先、キャブ内部（フロート・バルブ・シート）の状態。</li>
+        <li>オイルの量やにおいの変化の有無。</li>
+      </ul>
+      <p class="note">故障部位の確率は示しません。上の点が分かると、E1～E6のどれが当てはまりにくいかを絞れます。</p>
+    </div>
+    <div class="pager"><button class="btn" data-go="d">前：D</button><button class="btn" data-go="s">次：出典</button></div>
+  </section>
+
+  <!-- ===================== Sources ===================== -->
+  <section class="ch" id="ch-s" aria-labelledby="h-s" hidden>
+    <h2 id="h-s">出典と確認の範囲</h2>
+    <div class="warn" style="border-color:var(--line);background:var(--surface)">
+      <h3 style="color:var(--ink)">確認方法について</h3>
+      <p>[18]のワークショップマニュアルは、提供されたPDF（329ページ）の本文と図を読んで確認しました。教材中の「[18・6-3]」は、そのマニュアルのページ番号です。</p>
+      <p>[1]〜[17]のWebの資料は、制作環境のネットワーク制限で本文を取得できず、Web検索の結果に表示された要約で確認しました。本文の図や表は見ていません。マニュアルと重なる内容は、マニュアルを優先しています。</p>
+    </div>
+    <ul class="srclist" id="srclist"></ul>
+    <div class="pager"><button class="btn" data-go="e">前：E</button><button class="btn" data-go="a">最初の章へ</button></div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const TAGN={car:'車種資料',gen:'一般構造',unk:'未確認'};
+const tagHTML=t=>`<i class="tag ${t}">${TAGN[t]}</i>`;
+const srcHTML=a=>(a||[]).map(n=>{const [k,pg]=String(n).split(':');return `<a class="src" href="#src${k}">[${k}${pg?'・'+pg:''}]</a>`;}).join('');
+
+/* ---------------- 出典 ---------------- */
+const SOURCES={
+ 1:{t:'Honda「VTR 1997.11 プレスインフォメーション」主要諸元',u:'https://www.honda.co.jp/factbook/motor/VTR/19971100/011.html',o:'1997年11月発表のVTR（キャブレター仕様）',w:'水冷4ストロークDOHC4バルブV型2気筒・249cm³、燃料タンク容量13L、5速'},
+ 2:{t:'Honda ニュースリリース「軽二輪ロードスポーツバイク『VTR』のカラーリングを追加して発売」2007年1月22日',u:'https://global.honda/jp/news/2007/2070122-vtr.html',o:'2007年1月発売のVTR',w:'色の追加と、フレーム等の塗色を黒に変えた発表。要約の範囲では構造の変更は書かれていない。本教材の構造の根拠には使っていない'},
+ 3:{t:'Honda ニュースリリース「VTR」発売（PGM-FI採用）2009年2月20日',u:'https://global.honda/jp/news/2009/2090220-vtr.html',o:'2009年発売のVTR（燃料噴射仕様）',w:'燃料供給をPGM-FI（燃料噴射）に変更。これより前がキャブ仕様であり、本教材の対象外であることの根拠'},
+ 4:{t:'みんカラ整備手帳「VTR250：キャブレターの分解・清掃、その1（取り外し編）」',u:'https://minkara.carview.co.jp/userid/526128/car/771268/6890168/note.aspx',o:'VTR250（キャブ車。年式は要約では未確認）',w:'タンクの下にエアクリーナーケース、その下にキャブ。タンク下の燃料コックからホース。前後キャブ間の樹脂製ト字パイプ。前後キャブの取付けの向きが90度ずれる。90度V型2気筒'},
+ 5:{t:'Total Motorcycle「1998 Honda VTR250 Motorcycle Specs」',u:'https://www.totalmotorcycle.com/motorcyclespecshandbook/honda/1998-honda-VTR250/',o:'1998年式VTR250',w:'キャブレター形式VD10、ボア×ストローク60×44mm'},
+ 6:{t:'Webikeプラス「仕組みを知れば不具合の原因も分かる。負圧式燃料コックの構造とメンテナンスの要点を解説」',u:'https://news.webike.net/maintenance/260439/',o:'負圧式燃料コック一般（VTR専用ではない）',w:'ONでもRESでも負圧で通路が開く。ダイヤフラム、燃料を止めるばねとOリング。多い不具合はOリングの劣化で燃料を遮断できないこと'},
+ 7:{t:'グーバイクマガジン「バイクの負圧コックの故障の症状とは？仕組みや修理方法を解説」',u:'https://www.goobike.com/magazine/maintenance/repair/149/',o:'負圧式燃料コック一般',w:'エンジン始動で供給し、停止で供給が止まるのが正常な働き'},
+ 8:{t:'ForR「すごいぞ！パーツ保証付きなら絶版車の修理も安心だ！＜後編＞」',u:'https://for-r.jp/maintenance/39607.html',o:'VTR250（BA-MC33）',w:'チョークケーブルが途中で2本に分かれ、前後キャブのスターターバルブへつながる'},
+ 9:{t:'Whirlpool Forums「VTR250: hydrostatic lock!」',u:'https://forums.whirlpool.net.au/archive/9vy7jy53',o:'2006年式VTR250（オーストラリアの利用者投稿）',w:'前シリンダーに燃料がたまっていた報告。フロートバルブの固着が疑われ、負圧コックは流入を防ぐ「2段目の守り」という説明。資料としては利用者の報告'},
+ 10:{t:'「Float Bowl Overflow Tubes」（個人の技術ページ）',u:'https://web.ncf.ca/ag136/floatDrainTubes.htm',o:'Keihin CVK（カワサキ車用）。VTRではない',w:'オーバーフロー管のないキャブでは、フロートバルブが開いたままだと燃料がシリンダーへ流れ、始動時に部品を傷めることがある、という一般的な仕組み'},
+ 11:{t:'2りんかん ライダーズアカデミー「キャブのオーバーフローの原因とは」',u:'https://2rinkan.jp/ridersacademy/archives/2072/',o:'キャブレター一般',w:'原因はフロートの劣化・穴、フロートバルブ先端のゴムの異物や傷、バルブシートの汚れなど。オーバーフロー管がないキャブではベンチュリ側へ出る'},
+ 12:{t:'wholenotism「タンク下のドレンホースを留めるクリップが無い…」',u:'https://www.wholenotism.com/blog/2021/12/hose-clip.html',o:'VTR250',w:'タンク下のドレンホースは、給油口まわりにたまった燃料や雨水を外へ出す経路'},
+ 13:{t:'みんカラ整備手帳「VTR250：キャブレター内部（フロート室・ジェット類）、非分解洗浄」',u:'https://minkara.carview.co.jp/userid/526128/car/771268/3964060/note.aspx',o:'VTR250',w:'フロート室にドレン（ドレンスクリュー）がある。キャブにエアベントのチューブがある。接続先は要約では不明'},
+ 14:{t:'二輪＆四輪指導員mysimasima「VTR250整備：加速しない時はダイヤフラム劣化では？バキュームピストンと燃調」',u:'https://mysimasima.com/dialy/vtrseibi/',o:'VTR250',w:'VTR250のキャブはダイヤフラム付きのバキューム（負圧）ピストンを持つ'},
+ 15:{t:'wholenotism「負圧ホース（負圧チューブ）がひび割れてたので交換（VTR250）」',u:'https://www.wholenotism.com/blog/2021/12/replace-vacuum-tube.html',o:'VTR250（BA-MC33）',w:'負圧で燃料を流す負圧コックと負圧ホースがある。ホースに穴があると燃料が来ずエンストや始動不良になる'},
+ 16:{t:'inertial-drift「VTR250のバッテリー交換」',u:'https://inertial-drift.com/vtr-battery/',o:'VTR250',w:'バッテリーはシートの下'},
+ 18:{t:'Honda「VTR 250 Workshop Manual」（Honda Australia Motorcycle &amp; Power Equipment / 本田技研工業）',u:'',o:'VTR250（MC33）、フレーム番号MC33-1000001〜・エンジン番号MC15E-1500001〜（1-6）。豪州向けの英語版',w:'燃料系（6章）：燃料自動コック・負圧ホースの接続先・キャブの部品と構成・エアベントチューブ・バイスターター・トラブルシューティング。諸元（1-7〜1-9）、ホースと配線の取り回し（1-25〜1-28）、タンク（2-3）、冷却系（5-0）、充電系（16-0）、トラブルシューティング（21章）',m:'提供されたPDF（329ページ）の本文と図を読んで確認'},
+ 17:{t:'「VTRレギュレター交換」（個人の整備記録）',u:'http://www.2wheels-4wheels.sakura.ne.jp/vtr_reg.html',o:'VTR',w:'レギュレーターはタンクの下、右側のフレームの内側'}
+};
+$('#srclist').innerHTML=['18'].concat(Object.keys(SOURCES).filter(k=>k!=='18')).map(k=>{const s=SOURCES[k];return `<li id="src${k}"><b>[${k}] ${s.t}</b><br>${s.u?`<span class="k">URL：</span><a href="${s.u}" target="_blank" rel="noopener">${s.u}</a>`:'<span class="k">入手：</span>ユーザーから提供されたPDF（Web上のURLはありません）'}<br><span class="k">対象：</span>${s.o}<br><span class="k">この教材での用途：</span>${s.w}<br><span class="k">確認方法：</span>${s.m||'Web検索結果の要約（本文未取得）'}</li>`}).join('');
+
+/* ---------------- 部品データ ---------------- */
+const PARTS={
+ p1:{no:'1',name:'燃料タンク',role:'燃料をためる。キャブより高い位置にあり、燃料は下へ流れる。',link:'燃料自動コック②（タンク後ろ下）。タンクには負圧ホース・燃料ホース・ブリーザーチューブ（通気管）がつながる',tag:'car',src:[1,'18:2-3','18:6-2'],note:'容量13L[1]。RESの分もこの中に含まれ、別の予備タンクはない。キャップには通気口（fuel tank cap vent）があり、詰まると燃料の流れが悪くなる[18:6-2]。'},
+ p2:{no:'2',name:'燃料自動コック（Fuel Auto Cock）',role:'レバーでタンク内の取り出し口を選び、負圧作動部（ダイヤフラム・ばね）がエンジンの負圧を受けた時だけ燃料の通路を開く。',link:'燃料タンク①（ロックナットとOリングで取付け）、燃料ホース④、負圧ホース③',tag:'car',src:['18:6-3','18:6-4'],note:'タンクの中には、コックに付いたこし網（fuel strainer screen）が伸びている[18:6-4]。点検基準は「負圧をかけて燃料がスムーズに流れること。負圧をかけずに流れるならダイヤフラムを交換」[18:6-3]。内部の通路の形は模式で描いています。'},
+ p3:{no:'3',name:'負圧ホース（vacuum tube）',role:'エンジンの吸気側で生じる負圧（大気圧より低い圧力）を、コックの負圧作動部へ伝える細いホース。',link:'燃料自動コック②と、後ろシリンダーヘッドの負圧ホース継手',tag:'car',src:['18:6-20','18:6-3'],note:'前シリンダーヘッドの同じ位置の口は、ふさがれています（バキュームプラグ）[18:6-20]。'},
+ p4:{no:'4',name:'燃料ホース（fuel tube）',role:'コックからキャブへ燃料を運ぶ。',link:'燃料自動コック②→前後キャブ⑥',tag:'car',src:['18:3-16','18:6-17'],note:'点検基準は「コックからキャブまでのホースに傷み・損傷がないこと」[18:3-16]。'},
+ p5:{no:'5',name:'燃料継手（fuel joint・ト字）',role:'前後2つのキャブの間をつなぎ、燃料を両方へ分ける樹脂製の継手。',link:'燃料ホース④、前後キャブ⑥の燃料入口（C1）',tag:'car',src:['18:6-9','18:6-16',4],note:'前後キャブを分けるときに外す部品で、Oリングで密閉します[18:6-16]。'},
+ p6:{no:'6',name:'キャブレター（前・後の2個）',role:'空気の流れの中へ燃料を出して、混合気（空気と燃料の混ざったもの）をつくる。シリンダーごとに1個。',link:'エアクリーナー⑦（上）、シリンダー⑧の吸気口（Vの内側）',tag:'car',src:['18:1-8','18:1-9','18:6-14',4],note:'形式VD10（VD10L）、スロットル径32mm、ベンチュリは可変（負圧ピストン式）[18:1-8, 1-9]。ジェットニードルは前後で別の品番です[18:6-14]。'},
+ p7:{no:'7',name:'エアクリーナー',role:'吸い込む空気のごみをこす（紙のフィルター）。',link:'キャブ⑥（下側）。ケースの前後に点火コイルが付く',tag:'car',src:['18:6-0','18:1-8','18:3-16'],note:'タンクの下、キャブの上にあり、キャブと一体で取り外す構造です[18:6-7]。'},
+ p8:{no:'8',name:'シリンダー（前・後）',role:'ピストンが往復する筒。混合気が燃えて膨張し、ピストンを押し下げる。',link:'キャブ⑥（吸気口）、排気管⑭、クランク軸⑨',tag:'car',src:['18:1-7',4],note:'水冷・DOHC 4バルブの2気筒、ボア×ストローク60.0×44.1mm[18:1-7]。吸気口はVの内側にある。'},
+ p9:{no:'9',name:'クランク軸',role:'ピストンの往復を回転に変える軸。前後のシリンダーが同じ軸を回す。',link:'ピストン（コンロッド経由）、クラッチ⑩',tag:'gen'},
+ p10:{no:'10',name:'クラッチ',role:'エンジンの回転を変速機へつないだり切ったりする。',link:'クランク軸⑨、変速機⑪',tag:'car',src:['18:1-8'],note:'湿式多板。つながりは「エンジン→クラッチ→変速機」[18:1-8]。図の位置は模式です。'},
+ p11:{no:'11',name:'変速機（5速）',role:'歯車の組み合わせを変え、後輪へ伝える回転の速さと力の割合を変える。',link:'クラッチ⑩、ドライブスプロケット⑫',tag:'car',src:[1,'18:1-8'],note:'位置は模式。'},
+ p12:{no:'12',name:'スプロケットとチェーン',role:'変速機の出口の歯車から、チェーンで後輪の歯車へ回転を伝える。',link:'変速機⑪、後輪⑬',tag:'car',src:['18:1-8','18:5'],note:'チェーンは車体左側（チェーンケースが左側）[18:5]。'},
+ p13:{no:'13',name:'後輪',role:'チェーンから回されて路面を押し、車体を進める。',link:'チェーン⑫',tag:'gen'},
+ p14:{no:'14',name:'排気管・マフラー',role:'燃えた後のガスを後ろへ導き、音を小さくして外へ出す。',link:'シリンダー⑧の排気口（Vの外側）',tag:'car',src:['18:5'],note:'マフラーは車体右側[18:5]。図は左側面なので奥側に点線で描いています。管の取り回しは模式です。'},
+ p15:{no:'15',name:'ラジエーター',role:'エンジンを冷やした冷却水を、風で冷やす。',link:'サーモスタット、ウォーターポンプ、リザーブタンク（タンク下）',tag:'car',src:['18:5-0','18:5'],note:'エンジンの前方にあります[18:5-0]。図の形と角度はおおよそです。'},
+ p16:{no:'16',name:'エンジンオイル',role:'クランクケースの下にたまり、ポンプで回る部分へ送られて潤滑・冷却する。',link:'クランク軸⑨、ピストンなど',tag:'car',src:['18:1-9'],note:'容量は全量2.4L[18:1-9]。燃料が混ざると薄まる（E章）。'},
+ p17:{no:'17',name:'点火プラグと点火コイル',role:'圧縮された混合気に火花を飛ばして火をつける。コイルは前後に1個ずつ。',link:'点火コイル（エアクリーナーケースの前後）、シリンダー⑧',tag:'car',src:['18:6-0','18:6-5','18:6-7']},
+ p18:{no:'18',name:'発電機（ACジェネレーター）',role:'クランク軸の回転で発電する。',link:'クランク軸⑨、レギュレーター⑲',tag:'car',src:['18:16-0'],note:'エンジンの左側にあります[18:16-0]。'},
+ p19:{no:'19',name:'レギュレーター／レクチファイヤー',role:'発電した交流を直流にし、電圧を一定にしてバッテリーへ送る。',link:'発電機⑱、バッテリー⑳',tag:'car',src:['18:16-0','18:1-27',17],note:'車体中央付近の右側（16-0・1-27の図）。左側面の図では奥側になるため点線で描いています。'},
+ p20:{no:'20',name:'バッテリー',role:'電気をためる。始動と、エンジン停止中の電装に使う。',link:'レギュレーター⑲、点火系など',tag:'car',src:['18:16-0','18:2-4',16],note:'シートの下のバッテリーボックス。'},
+ c1:{no:'C1',name:'燃料入口',role:'燃料継手⑤から来た燃料の入口。ここからバルブシートC2へ向かう。',link:'燃料継手⑤、バルブシートC2',tag:'gen',note:'入口の向きと位置は模式です。'},
+ c2:{no:'C2',name:'バルブシート',role:'フロートバルブC3の先端が押し当たって、燃料の通り道をふさぐ座面。取り外し式で、こし網（strainer screen）が付く。',link:'燃料入口C1、フロートバルブC3',tag:'car',src:['18:6-11',11],note:'点検項目は「傷・段付き摩耗・汚れ」[18:6-11]。'},
+ c3:{no:'C3',name:'フロートバルブ',role:'先端がシートC2に当たると流入が止まる。フロートのアームに掛けてあり、フロートC6の動きで上下する。ジェットニードルC10とは別の部品。',link:'シートC2、フロートアームC4',tag:'car',src:['18:6-11','18:6-13',11],note:'点検項目は「傷・段付き摩耗・汚れ」[18:6-11]。'},
+ c4:{no:'C4',name:'フロートアーム（バルブを押す部分）',role:'フロートと一体で支点C5のまわりを回り、先の爪（float arm lip）でフロートバルブC3を押し上げる。',link:'フロートC6、支点C5、フロートバルブC3',tag:'car',src:['18:6-13','18:6-14']},
+ c5:{no:'C5',name:'支点（フロートピン）',role:'フロートが回る軸。キャブ本体の脚に差してある。',link:'キャブ本体、フロートC6',tag:'car',src:['18:6-11','18:6-13']},
+ c6:{no:'C6',name:'フロート',role:'燃料に浮く中空の浮き。油面が上がると浮き上がり、支点C5のまわりに回ってバルブを押し上げる。',link:'支点C5、フロートアームC4',tag:'car',src:['18:6-11','18:6-12'],note:'点検項目に「内部への燃料の漏れ込み」がある[18:6-11]。浮きに燃料が入ると浮かなくなる（D章の条件）。左右2つの浮きでジェットの柱をまたぐ形で、断面では柱の後ろに重ねて描いています。'},
+ c7:{no:'C7',name:'フロート室',role:'キャブの下の燃料だまり。ここで油面をほぼ一定に保つ。',link:'燃料入口C1、メインジェットC8、スロー系C16、ドレンC18',tag:'car',src:['18:6-10','18:6-14'],note:'本体との合わせ目はOリングで密閉[18:6-14]。'},
+ c8:{no:'C8',name:'メインジェット',role:'燃料が通る小さな穴をもつ部品。スロットルを大きく開けた時の燃料の量の上限を決める。',link:'フロート室C7、ニードルジェットC9',tag:'car',src:['18:6-11','18:6-12']},
+ c9:{no:'C9',name:'ニードルジェット',role:'メインジェットの上の筒。上の口がベンチュリC20に開き、ここから燃料が空気の流れへ出る。',link:'メインジェットC8、ジェットニードルC10',tag:'car',src:['18:6-11'],note:'通路の形は模式です。'},
+ c10:{no:'C10',name:'ジェットニードル',role:'負圧ピストンC11に付いた細い針。先ほど細く、ピストンが上がるほどニードルジェットとのすき間が広がって燃料が増える。',link:'負圧ピストンC11、ニードルジェットC9',tag:'car',src:['18:6-10','18:6-14'],note:'フロートバルブC3とは別の部品です。前後キャブで品番が違います[18:6-14]。'},
+ c11:{no:'C11',name:'負圧ピストン',role:'空気の流れに応じて上下し、ベンチュリの広さとニードルの位置を変える。',link:'ダイヤフラムC12、ジェットニードルC10',tag:'car',src:['18:6-10','18:1-8',14]},
+ c12:{no:'C12',name:'ダイヤフラム',role:'ピストン上部に付いたゴムの膜。上下の圧力差を受けてピストンを持ち上げる。',link:'負圧室C13、大気側の通路C14',tag:'car',src:['18:6-10','18:6-15',14]},
+ c13:{no:'C13',name:'負圧室',role:'ダイヤフラムの上の部屋。ピストン底の穴でベンチュリとつながり、空気が速く流れると圧力が下がる。中のばね（compression spring）はピストンを下へ押す。',link:'ベンチュリC20（ピストン底の穴）',tag:'car',src:['18:6-9','18:6-10'],note:'ピストン底の穴の位置は模式です。'},
+ c14:{no:'C14',name:'大気側の通路',role:'ダイヤフラムの下の部屋を、エアクリーナー側（ほぼ大気圧）へつなぐ通路。',link:'エアクリーナー側の空気の通路',tag:'gen',note:'負圧式キャブの一般的な構造です。マニュアルには通路の記載はありません。'},
+ c15:{no:'C15',name:'スロットルバルブ',role:'グリップの操作で回る板。エンジンが吸う空気の量を直接決める。',link:'スロットルワイヤー、空気の通路',tag:'car',src:['18:1-8','18:6-16'],note:'径32mm[18:1-8]。前後キャブのスロットルはリンクでつながる[18:6-16]。'},
+ c16:{no:'C16',name:'スロー系（スロージェットと出口）',role:'スロットルがほぼ閉じた時の燃料の通り道。スロットルのすぐ下流の小さな出口から出る。',link:'フロート室C7、スロットル付近',tag:'car',src:['18:6-11','18:6-1'],note:'長く放置すると劣化した燃料でスロー系が詰まり、アイドリングが不安定になる[18:6-1]。出口の位置は模式です。'},
+ c17:{no:'C17',name:'バイスターターバルブ（始動用の濃化機構）',role:'チョークレバーで開き、専用の通路から燃料を多めに出して混合気を濃くする。',link:'チョークケーブル（前後キャブの2個のバルブを動かす）、フロート室C7',tag:'car',src:['18:6-6','18:6-18',8],note:'開いたままだと混合気が濃くなる[18:6-2]。通路の形は模式です。'},
+ c18:{no:'C18',name:'ドレンスクリュー',role:'フロート室の燃料を抜くためのねじ。',link:'フロート室C7',tag:'car',src:['18:6-1','18:6-5','18:21-1'],note:'図の位置は模式です。'},
+ c19:{no:'C19',name:'エアベント（通気）とエアベントチューブ',role:'フロート室の上の空間を外とつなぎ、油面に大気圧をかける。',link:'フロート室C7、エアベントチューブ（前後キャブに1本ずつ）',tag:'car',src:['18:6-8','18:6-17','18:1-28','18:6-2'],note:'チューブが詰まると混合気が薄くなる[18:6-2]。チューブは後ろ点火コイル付近で、冷却水リザーブのブリーザーチューブ・配線とまとめて固定されている（1-28の図）。先端の開く場所は図から確定できません。キャブ内部の通路の位置は模式です。'},
+ c20:{no:'C20',name:'ベンチュリ',role:'ピストンの下で空気の通路が細くなる所。空気が速く流れ、圧力が下がる。',link:'ニードルジェットC9、負圧室C13',tag:'car',src:['18:1-8'],note:'ピストンの上下で広さが変わる「可変ベンチュリ」[18:1-8]。'},
+ c21:{no:'C21',name:'フロート室の合わせ面',role:'フロート室と本体の合わせ目。Oリングで密閉する。',link:'キャブ本体、フロート室C7',tag:'car',src:['18:6-14']},
+ e1:{no:'E1',name:'コックとタンクの取付部・コック本体',role:'コックはロックナットとOリングでタンクに付く。ここから漏れると、レバーの位置やエンジンの状態に関係なく、タンクに燃料がある限り出続けることがある。',link:'タンク①、コック②',tag:'car',src:['18:6-4','18:6-5'],when:'停車中も走行中も。OFFでも止まらないことがある（OFFの弁より上流のため）。',look:'コックのまわり・タンク底が濡れているか。マニュアルでも取付け後に燃料漏れの確認を求めている[18:6-5]。'},
+ e2:{no:'E2',name:'負圧作動部（コック内部）',role:'閉じきらないと、エンジン停止中も下流へ燃料が送られる。それだけでは外へは漏れず、下流に漏れる所（E3〜E5）があると漏れにつながる。',link:'コック②、負圧ホース③',tag:'car',src:['18:6-3',6],when:'エンジン停止中にON／RESのとき。OFFにすると止まる。',look:'マニュアルの点検基準は「負圧をかけずに燃料が流れるならダイヤフラムを交換」[18:6-3]。膜が破れた場合に燃料が負圧ホース側へ回ることも一般構造上は考えられるが、マニュアルに記載はない。'},
+ e3:{no:'E3',name:'燃料ホース・燃料継手の接続部',role:'ホースのひび・硬化、差し込みのゆるみ、継手のOリングの傷みから、燃料が通っている間ににじむ。',link:'コック②、燃料継手⑤、キャブ⑥',tag:'car',src:['18:3-16','18:6-16'],when:'上流が開いている間（走行中など）。OFFの後は、ホースに残った分が出切れば止まる。',look:'継手やホース表面の濡れ・ひび。'},
+ e4:{no:'E4',name:'フロートバルブ・シートの密閉不良',role:'油面が上がってもバルブが燃料を止めきれず、フロート室が満杯になって、あふれた燃料が通路から出ていく（D章③）。',link:'フロートバルブC3、シートC2、フロートC6',tag:'car',src:['18:6-2','18:6-11',11],when:'上流が開いている間。負圧作動部が正常なら、停車中はホースの残り分で止まる（D章④）。',look:'キャブ内部なので外からは見えない。マニュアルは「フロートバルブの不良」「キャブのオーバーフロー」を、濃すぎる混合気やシリンダー内の燃料過多の原因に挙げている[18:6-2]。'},
+ e4a:{no:'E4a',name:'あふれ先：ベンチュリ→吸気側→シリンダー',role:'満杯になったフロート室の燃料が、ニードルジェットなどの通路からベンチュリへ出て、エンジン側へ流れる。',link:'キャブ⑥、シリンダー⑧',tag:'car',src:['18:6-2',10,9],when:'フロート室が満杯のとき。',look:'マニュアルは始動不良の原因として「シリンダー内の燃料過多 — キャブのオーバーフロー」を挙げている[18:6-2]。外に垂れないこともある。オイルのにおいや量は参考になるが、それだけで断定しない。'},
+ e4b:{no:'E4b',name:'あふれ先：エアベントチューブ',role:'満杯になるとエアベントの通路・チューブから燃料が出ることがある。',link:'エアベントC19',tag:'gen',src:['18:1-28',13],when:'フロート室が満杯のとき。',look:'チューブは前後キャブに1本ずつあり、後ろ点火コイル付近で束ねられている（1-28の図）。先端の開く場所は図から確定できないため、チューブをたどって出口を確かめる。'},
+ e5:{no:'E5',name:'フロート室の合わせ面・ドレンスクリュー',role:'Oリングの傷みやドレンスクリューのゆるみから、フロート室の燃料がにじむ。',link:'フロート室C7、ドレンC18、合わせ面C21',tag:'car',src:['18:6-14','18:6-1'],when:'フロート室に燃料がある間。上流を止めても、室内に残った分は出る。',look:'キャブ下部の合わせ目やドレンのまわりの濡れ。'},
+ e6:{no:'E6',name:'タンクのブリーザーチューブ・給油口まわり',role:'タンクにはブリーザーチューブ（通気管）がつながる。給油口のまわりにこぼれた燃料や雨水を外へ出す管もある、という整備記録もある。キャブの不調とは別の系統。',link:'タンク①の給油口まわり',tag:'car',src:['18:2-3',12],when:'給油の直後や雨の後。',look:'給油直後だけか、管の出口がどこか。'}
+};
+const linkRefs=t=>String(t||'').replace(/\[18:([^\]]+)\]/g,(m,pg)=>`<a class="src" href="#src18">[18・${pg}]</a>`).replace(/\[(\d{1,2})\]/g,(m,k)=>`<a class="src" href="#src${k}">[${k}]</a>`);
+function infoCard(id){
+  const p0=PARTS[id]; if(!p0) return '';
+  const p=Object.assign({},p0); for(const k of ['role','note','when','look','link']) if(p[k]) p[k]=linkRefs(p[k]);
+  let h=`<div class="info" aria-live="polite"><h3><span class="chip-no" style="font-weight:800">${p.no}</span> ${p.name} ${tagHTML(p.tag)}</h3><dl>`;
+  h+=`<dt>役割</dt><dd>${p.role}${srcHTML(p.src)}</dd>`;
+  h+=`<dt>つながる</dt><dd>${p.link}</dd>`;
+  if(p.when) h+=`<dt>いつ出るか</dt><dd>${p.when}</dd>`;
+  if(p.look) h+=`<dt>手がかり</dt><dd>${p.look}</dd>`;
+  if(p.note) h+=`<dt>補足</dt><dd>${p.note}</dd>`;
+  return h+'</dl></div>';
+}
+function chipsHTML(ids,sel){
+  return ids.map(id=>`<button class="chip" data-part="${id}" aria-pressed="${id===sel}"><span class="no">${PARTS[id].no}</span>${PARTS[id].name}</button>`).join('');
+}
+function marker(id,x,y,sel,lx,ly){
+  const p=PARTS[id]; const on=id===sel; const r=13;
+  let s='';
+  if(lx!==undefined) s+=`<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly}" style="stroke:${on?'var(--hl)':'var(--ink)'};stroke-width:1.5"/>`;
+  const w=p.no.length>2?36:(p.no.length>1?30:26);
+  s+=`<g class="hit" data-part="${id}"><rect x="${x-w/2}" y="${y-r}" width="${w}" height="${2*r}" rx="${r}" style="fill:${on?'var(--hl)':'var(--surface)'};stroke:${on?'var(--hl)':'var(--ink)'};stroke-width:1.8"/>`;
+  s+=`<text x="${x}" y="${y+5.2}" text-anchor="middle" style="font-size:15px;font-weight:800;fill:${on?'#fff':'var(--ink)'}">${p.no}</text>`;
+  s+=`<circle cx="${x}" cy="${y}" r="22" style="fill:transparent"/></g>`;
+  return s;
+}
+function selLabel(sel,x,y,anchor){
+  if(!sel||!PARTS[sel]) return '';
+  const t=PARTS[sel].no+' '+PARTS[sel].name;
+  const w=Math.min(340,t.length*15.5+16); let bx=anchor==='end'?x-w:x; bx=Math.max(2,Math.min(358-w,bx));
+  return `<g pointer-events="none"><rect x="${bx}" y="${y-18}" width="${w}" height="26" rx="6" style="fill:var(--hl)"/><text x="${bx+8}" y="${y}" style="font-size:15px;font-weight:700;fill:#fff">${t}</text></g>`;
+}
+/* 動き（アニメーション） */
+const MOT={on:!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)};
+const HOLD={};
+// 液体の流れを示す粒（CSSで動かす：再描画の少ない図用）
+const PC=(d,w)=>`<path d="${d}" class="mv" style="fill:none;stroke:var(--surface);stroke-width:${w||2.5};stroke-dasharray:1.5 8.5;stroke-linecap:round;pointer-events:none"/>`;
+// 同じ粒をJSの位相で動かす（毎コマ描き直す図用）
+const PJ=(d,ph,w,col)=>`<path d="${d}" style="fill:none;stroke:${col||'var(--surface)'};stroke-width:${w||2.5};stroke-dasharray:1.5 8.5;stroke-dashoffset:${(-ph).toFixed(2)};stroke-linecap:round;pointer-events:none"/>`;
+function setMotion(on){
+  MOT.on=on; document.body.classList.toggle('motion',on);
+  const b=$('#motion'); b.setAttribute('aria-pressed',on); b.textContent=on?'動き：あり（押すと止まる）':'動き：なし（押すと動く）';
+}
+const hlStyle=(on,base)=>on?`${base};stroke:var(--hl);stroke-width:4`:base;
+
+/* ---------------- 共通：車体の絵 ---------------- */
+const FC={x:182,y:190};
+function bikeShapes(o){
+  o=o||{}; const sel=o.sel;
+  const H=id=>sel===id;
+  let s='';
+  s+=`<line x1="0" y1="240" x2="360" y2="240" style="stroke:var(--line);stroke-width:2"/>`;
+  // radiator (behind fork)
+  s+=`<g data-part="p15" class="hit"><rect x="98" y="120" width="11" height="44" rx="2" transform="rotate(-28 103 142)" style="${hlStyle(H('p15'),'fill:var(--body2);stroke:var(--cool);stroke-width:2;stroke-dasharray:4 2')}"/></g>`;
+  // muffler (hidden side)
+  s+=`<g data-part="p14" class="hit"><path d="M246,206 L330,182 L336,196 L252,222 Z" style="${hlStyle(H('p14'),'fill:var(--body);stroke:var(--exh);stroke-width:2;stroke-dasharray:5 3')}"/></g>`;
+  // wheels
+  for(const [cx,id] of [[62,null],[298,'p13']]){
+    s+=`<g ${id?`data-part="${id}" class="hit"`:''}><circle cx="${cx}" cy="196" r="42" style="${hlStyle(H(id)&&id,'fill:none;stroke:var(--metal-dark);stroke-width:7')}"/><circle cx="${cx}" cy="196" r="31" style="fill:none;stroke:var(--metal);stroke-width:2"/><circle cx="${cx}" cy="196" r="5" style="fill:var(--metal-dark)"/></g>`;
+  }
+  // fork, bars
+  s+=`<line x1="119" y1="86" x2="62" y2="196" style="stroke:var(--metal-dark);stroke-width:6;stroke-linecap:round"/>`;
+  s+=`<path d="M112,62 L122,90" style="stroke:var(--metal-dark);stroke-width:8;stroke-linecap:round"/><path d="M98,56 L124,54" style="stroke:var(--ink);stroke-width:4;stroke-linecap:round"/>`;
+  // frame + swingarm
+  s+=`<path d="M120,74 L232,96 L240,182" style="fill:none;stroke:var(--metal-dark);stroke-width:4;stroke-linejoin:round"/>`;
+  s+=`<path d="M122,84 L150,150" style="fill:none;stroke:var(--metal);stroke-width:3"/>`;
+  s+=`<line x1="240" y1="184" x2="298" y2="196" style="stroke:var(--metal-dark);stroke-width:6;stroke-linecap:round"/>`;
+  // crankcase + cylinders
+  s+=`<g data-part="p9" class="hit"><ellipse cx="190" cy="198" rx="46" ry="24" style="${hlStyle(H('p9'),'fill:var(--body);stroke:var(--metal-dark);stroke-width:2')}"/></g>`;
+  const cyl=(ang,id)=>`<g transform="rotate(${ang} ${FC.x} ${FC.y})" data-part="${id}" class="hit"><rect x="165" y="128" width="34" height="44" rx="3" style="${hlStyle(H(id),'fill:var(--body);stroke:var(--metal-dark);stroke-width:2')}"/><rect x="162" y="110" width="40" height="19" rx="4" style="${hlStyle(H(id),'fill:var(--body2);stroke:var(--metal-dark);stroke-width:2')}"/></g>`;
+  s+=cyl(-50,'p8')+cyl(40,'p8');
+  // exhaust pipes
+  s+=`<g data-part="p14" class="hit"><path d="M114,150 C98,176 104,214 140,224 L242,226 C250,222 254,216 256,212" style="${hlStyle(H('p14'),'fill:none;stroke:var(--metal-dark);stroke-width:5;stroke-linecap:round')}"/><path d="M243,146 C256,160 258,182 256,204" style="${hlStyle(H('p14'),'fill:none;stroke:var(--metal-dark);stroke-width:5;stroke-linecap:round')}"/></g>`;
+  // air cleaner
+  s+=`<g data-part="p7" class="hit"><rect x="148" y="98" width="68" height="20" rx="4" style="${hlStyle(H('p7'),'fill:var(--body2);stroke:var(--metal-dark);stroke-width:2')}"/></g>`;
+  // carbs
+  s+=`<g data-part="p6" class="hit"><rect x="150" y="118" width="18" height="20" rx="3" transform="rotate(35 159 128)" style="${hlStyle(H('p6'),'fill:var(--metal);stroke:var(--ink);stroke-width:1.5')}"/><rect x="186" y="116" width="18" height="20" rx="3" transform="rotate(-35 195 126)" style="${hlStyle(H('p6'),'fill:var(--metal);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+  // tank + seat
+  s+=`<g data-part="p1" class="hit"><path d="M124,70 C140,50 204,48 226,62 L232,92 L136,96 Z" style="${hlStyle(H('p1'),'fill:var(--body2);stroke:var(--ink);stroke-width:2;stroke-linejoin:round')}"/></g>`;
+  s+=`<path d="M228,70 L302,84 L304,94 L232,94 Z" style="fill:var(--metal-dark);stroke:var(--ink);stroke-width:1.5"/><path d="M302,86 L324,88" style="stroke:var(--metal-dark);stroke-width:4;stroke-linecap:round"/>`;
+  // fuel cock
+  s+=`<g data-part="p2" class="hit"><rect x="146" y="96" width="12" height="9" rx="2" style="${hlStyle(H('p2'),'fill:var(--fuel-fill);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+  return s;
+}
+function bikeLocator(x,y,sc){
+  let s=`<g transform="translate(${x} ${y}) scale(${sc})" pointer-events="none">`;
+  s+=`<rect x="0" y="30" width="360" height="222" rx="10" style="fill:var(--surface);stroke:var(--ink);stroke-width:5"/>`;
+  s+=`<circle cx="62" cy="196" r="42" style="fill:none;stroke:var(--metal-dark);stroke-width:10"/><circle cx="298" cy="196" r="42" style="fill:none;stroke:var(--metal-dark);stroke-width:10"/>`;
+  s+=`<line x1="119" y1="86" x2="62" y2="196" style="stroke:var(--metal-dark);stroke-width:9"/>`;
+  s+=`<path d="M124,70 C140,50 204,48 226,62 L232,92 L136,96 Z" style="fill:var(--body2);stroke:var(--ink);stroke-width:5"/><path d="M228,70 L302,84 L304,94 L232,94 Z" style="fill:var(--metal-dark)"/>`;
+  s+=`<ellipse cx="190" cy="198" rx="46" ry="24" style="fill:var(--body);stroke:var(--metal-dark);stroke-width:5"/>`;
+  s+=`<g transform="rotate(-50 182 190)"><rect x="165" y="110" width="34" height="62" style="fill:var(--body);stroke:var(--metal-dark);stroke-width:5"/></g><g transform="rotate(40 182 190)"><rect x="165" y="110" width="34" height="62" style="fill:var(--body);stroke:var(--metal-dark);stroke-width:5"/></g>`;
+  s+=`<rect x="136" y="92" width="92" height="56" rx="6" style="fill:none;stroke:var(--danger);stroke-width:10"/>`;
+  return s+'</g>';
+}
+
+/* ---------------- A 章 ---------------- */
+const A={layer:'flow',sel:null,stroke:0};
+const LAYER={
+ flow:{parts:['p1','p2','p6','p7','p8','p14'],
+   legend:['fuel','air','mix','exh'],
+   text:`<b>燃料</b>：タンク①の底の燃料コック②からホースを通り、Vバンク（2つのシリンダーの間）にあるキャブ⑥へ下ります<a class="src" href="#src4">[4]</a>。<br><b>空気</b>：タンクの下のエアクリーナー⑦でこされ、その下のキャブ⑥へ入ります<a class="src" href="#src4">[4]</a>。<br><b>合流</b>：キャブの中で空気の流れに燃料が出て混合気になり、Vの内側の吸気口からシリンダー⑧へ入ります。<br><b>排気</b>：燃えたガスはVの外側から排気管⑭へ出ます。`},
+ power:{parts:['p8','p9','p10','p11','p12','p13'],legend:['power'],
+   text:`シリンダー⑧の中で混合気が燃えて膨らみ、ピストンを押し下げます。ピストンはコンロッドでクランク軸⑨を回します。回転はクラッチ⑩→変速機⑪（5速<a class="src" href="#src1">[1]</a>）→スプロケットとチェーン⑫→後輪⑬の順に伝わります。<br><span class="note">クラッチと変速機はエンジンのケースの中にあり、図の位置は模式です。</span>`},
+ support:{parts:['p15','p16','p17','p18','p19','p20'],legend:['cool','elec','oil'],
+   text:`<b>冷却水</b>：水冷エンジン<a class="src" href="#src18">[18・1-7]</a>。シリンダーのまわりを通った水を、エンジン前方のラジエーター⑮で冷やします<a class="src" href="#src18">[18・5-0]</a>。<br><b>オイル</b>：クランクケースの下⑯にたまり、回る部分へ送られます。<br><b>電気</b>：発電機⑱（エンジン左側）→レギュレーター⑲（車体中央の右側）→バッテリー⑳（シート下）<a class="src" href="#src18">[18・16-0]</a>。点火コイルは前後に1個ずつあり、エアクリーナーケースの前後に付きます<a class="src" href="#src18">[18・6-0]</a>。そこから点火プラグ⑰へつながり、混合気に火をつけます。`}
+};
+const LEG={
+ fuel:['燃料（液体）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--fuel);stroke-width:4" marker-end="url(#arF)"/>'],
+ air:['空気（気体）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>'],
+ mix:['混合気（空気＋燃料）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--fuel-pale);stroke-width:8"/><line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>'],
+ exh:['排気（気体）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--exh);stroke-width:3;stroke-dasharray:9 3 2 3" marker-end="url(#arE)"/>'],
+ power:['回転力（二重線）','<line x1="2" y1="7" x2="32" y2="7" style="stroke:var(--power);stroke-width:7"/><line x1="2" y1="7" x2="32" y2="7" style="stroke:var(--paper);stroke-width:2.5"/>'],
+ cool:['冷却水（液体）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--cool);stroke-width:3" marker-end="url(#arC)"/>'],
+ elec:['電気（点線）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--elec);stroke-width:3;stroke-dasharray:1 5;stroke-linecap:round" marker-end="url(#arL)"/>'],
+ oil:['オイル（たまっている所）','<rect x="4" y="2" width="30" height="10" rx="2" style="fill:var(--oil);opacity:.55"/>'],
+ vac:['負圧（ホース内の圧力）','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--vac);stroke-width:5"/><line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--paper);stroke-width:1.5"/>'],
+ over:['あふれた燃料の行き先','<line x1="2" y1="7" x2="34" y2="7" style="stroke:var(--danger);stroke-width:3;stroke-dasharray:5 3" marker-end="url(#arD)"/>']
+};
+const legendHTML=keys=>keys.map(k=>`<span><svg viewBox="0 0 40 14" aria-hidden="true">${LEG[k][1]}</svg>${LEG[k][0]}</span>`).join('');
+function renderA(){
+  const L=LAYER[A.layer]; if(A.sel && !L.parts.includes(A.sel)) A.sel=null;
+  let s=bikeShapes({sel:A.sel});
+  const sel=A.sel;
+  if(A.layer==='flow'){
+    const fa='M152,105 C152,116 160,118 166,121', fb='M160,118 C176,114 184,116 190,119';
+    s+=`<path d="${fa}" style="fill:none;stroke:var(--fuel);stroke-width:3.5" marker-end="url(#arF)"/>`+PC(fa,2);
+    s+=`<path d="${fb}" style="fill:none;stroke:var(--fuel);stroke-width:3.5" marker-end="url(#arF)"/>`+PC(fb,2);
+    s+=`<path d="M244,84 L222,106" class="mv" style="fill:none;stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>`;
+    s+=`<path d="M170,112 L163,121" class="mv" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/><path d="M196,112 L194,118" class="mv" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>`;
+    s+=`<path d="M154,136 L140,144" style="stroke:var(--fuel-pale);stroke-width:8"/><path d="M154,136 L140,144" class="mv" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>`;
+    s+=`<path d="M200,133 L214,138" style="stroke:var(--fuel-pale);stroke-width:8"/><path d="M200,133 L214,138" class="mv" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/>`;
+    s+=`<path d="M108,170 C100,196 112,216 150,220" class="mv17" style="fill:none;stroke:var(--exh);stroke-width:3;stroke-dasharray:9 3 2 3" marker-end="url(#arE)"/>`;
+    s+=`<path d="M252,158 C262,176 262,190 258,200" class="mv17" style="fill:none;stroke:var(--exh);stroke-width:3;stroke-dasharray:9 3 2 3" marker-end="url(#arE)"/>`;
+    s+=`<path d="M292,190 L338,176" class="mv17" style="fill:none;stroke:var(--exh);stroke-width:3;stroke-dasharray:9 3 2 3" marker-end="url(#arE)"/>`;
+    s+=`<text x="248" y="80" style="font-size:14px;fill:var(--air)">空気</text>`;
+    s+=marker('p1',180,34,sel,180,62)+marker('p2',120,110,sel,146,101)+marker('p7',256,112,sel,216,108)+marker('p6',206,152,sel,196,130)+marker('p8',82,132,sel,120,146)+marker('p14',150,244,sel,160,226);
+  } else if(A.layer==='power'){
+    const dl=(d)=>`<path d="${d}" style="fill:none;stroke:var(--power);stroke-width:7;stroke-linecap:round;stroke-linejoin:round"/><path d="${d}" class="mv" style="fill:none;stroke:var(--paper);stroke-width:2.5;stroke-dasharray:6 4;stroke-linejoin:round"/>`;
+    s+=dl('M134,148 L176,184')+dl('M226,140 L188,184')+dl('M182,190 L208,204 L226,198 L240,198');
+    s+=`<path d="M170,178 L178,186" style="stroke:var(--power);stroke-width:3" marker-end="url(#arP)"/><path d="M194,178 L186,186" style="stroke:var(--power);stroke-width:3" marker-end="url(#arP)"/>`;
+    s+=`<g data-part="p10" class="hit"><circle cx="208" cy="204" r="9" style="${hlStyle(sel==='p10','fill:var(--surface);stroke:var(--power);stroke-width:2.5')}"/></g>`;
+    s+=`<g data-part="p11" class="hit"><rect x="218" y="190" width="16" height="16" rx="3" style="${hlStyle(sel==='p11','fill:var(--surface);stroke:var(--power);stroke-width:2.5')}"/></g>`;
+    s+=`<g data-part="p12" class="hit"><circle cx="242" cy="198" r="7" style="${hlStyle(sel==='p12','fill:var(--surface);stroke:var(--power);stroke-width:2.5')}"/><path d="M298,181 L242,191 M242,205 L298,211" class="mv" style="${hlStyle(sel==='p12','stroke:var(--power);stroke-width:3;stroke-dasharray:6 4')}"/><circle cx="298" cy="196" r="15" style="fill:none;stroke:var(--power);stroke-width:3"/></g>`;
+    s+=`<g data-part="p9" class="hit"><circle cx="182" cy="190" r="7" style="${hlStyle(sel==='p9','fill:var(--power)')}"/></g>`;
+    s+=`<path d="M322,180 A26,26 0 0 0 274,180" style="fill:none;stroke:var(--power);stroke-width:2.5" marker-end="url(#arP)"/><text x="276" y="166" style="font-size:14px;fill:var(--power)">回転</text>`;
+    s+=marker('p8',92,126,sel,122,146)+marker('p9',150,244,sel,178,196)+marker('p10',206,244,sel,208,213)+marker('p11',262,244,sel,228,206)+marker('p12',268,154,sel,256,188)+marker('p13',330,244,sel,318,226);
+  } else {
+    s+=`<path d="M107,140 C120,130 128,126 138,132" style="fill:none;stroke:var(--cool);stroke-width:3" marker-end="url(#arC)"/><path d="M218,122 C190,104 140,110 112,128" style="fill:none;stroke:var(--cool);stroke-width:3" marker-end="url(#arC)"/>`+PC('M107,140 C120,130 128,126 138,132',2)+PC('M218,122 C190,104 140,110 112,128',2);
+    s+=`<g data-part="p16" class="hit"><path d="M150,206 Q190,228 232,206 L230,214 Q190,232 152,214 Z" style="${hlStyle(sel==='p16','fill:var(--oil);opacity:.6')}"/></g>`;
+    s+=`<g data-part="p17" class="hit"><circle cx="119" cy="137" r="5" style="${hlStyle(sel==='p17','fill:var(--elec);stroke:var(--ink);stroke-width:1.5')}"/><circle cx="235" cy="127" r="5" style="${hlStyle(sel==='p17','fill:var(--elec);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+    s+=`<g data-part="p18" class="hit"><circle cx="182" cy="190" r="11" style="${hlStyle(sel==='p18','fill:none;stroke:var(--elec);stroke-width:3')}"/></g>`;
+    s+=`<g data-part="p19" class="hit"><rect x="210" y="98" width="14" height="10" rx="2" style="${hlStyle(sel==='p19','fill:var(--surface);stroke:var(--elec);stroke-width:2;stroke-dasharray:3 2')}"/></g>`;
+    s+=`<g data-part="p20" class="hit"><rect x="252" y="98" width="22" height="14" rx="2" style="${hlStyle(sel==='p20','fill:var(--elec);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+    s+=`<path d="M190,180 C196,150 204,126 214,110" class="mvs" style="fill:none;stroke:var(--elec);stroke-width:3;stroke-dasharray:1 4;stroke-linecap:round" marker-end="url(#arL)"/><path d="M226,103 L248,104" class="mvs" style="fill:none;stroke:var(--elec);stroke-width:3;stroke-dasharray:1 4;stroke-linecap:round" marker-end="url(#arL)"/>`;
+    s+=marker('p15',70,110,sel,100,132)+marker('p16',120,244,sel,160,214)+marker('p17',100,164,sel,117,141)+marker('p18',150,244,sel,178,198)+marker('p19',214,72,sel,217,98)+marker('p20',292,124,sel,272,110);
+  }
+  s+=`<text x="4" y="248" style="font-size:14px;fill:var(--muted)">前</text><text x="342" y="248" style="font-size:14px;fill:var(--muted)">後</text>`;
+  s+=selLabel(sel,4,22);
+  $('#svg-a').innerHTML=s;
+  $('#a-legend').innerHTML=legendHTML(L.legend);
+  $('#a-parts').innerHTML=chipsHTML(L.parts,sel);
+  $('#a-info').innerHTML=sel?infoCard(sel):'<p class="note">番号か部品名をタップすると、役割とつながりが表示されます。</p>';
+  $('#a-text').innerHTML=L.text;
+  $$('#a-layer button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===A.layer));
+}
+
+/* 4行程 */
+const STROKES=[
+ {pos:0.55,down:true,iv:true,ev:false,txt:'<b>1 吸気</b>：ピストンが下がり、開いた吸気バルブから混合気（キャブで空気と燃料が混ざったもの）を吸い込みます。このときキャブのベンチュリに速い空気の流れができ、燃料が引き出されます（C章）。'},
+ {pos:0.5,down:false,iv:false,ev:false,txt:'<b>2 圧縮</b>：両方のバルブが閉じ、ピストンが上がって混合気を押し縮めます。'},
+ {pos:0.25,down:true,iv:false,ev:false,fire:true,txt:'<b>3 燃焼・膨張</b>：点火プラグの火花で混合気が燃え、ガスが膨らんでピストンを押し下げます。この力がコンロッドを通してクランク軸を回します（A章の「動力の伝わり方」）。'},
+ {pos:0.5,down:false,iv:false,ev:true,txt:'<b>4 排気</b>：排気バルブが開き、上がるピストンが燃えた後のガスを排気管へ押し出します。'}
+];
+const ST={th:90,playing:false,raf:0,last:0,idx:-1};
+function renderStroke(){
+  const th=((ST.th%720)+720)%720, i=Math.min(3,Math.floor(th/180)), st=STROKES[i];
+  const cx=180,cy=222,r=30,L=90,a=th*Math.PI/180;
+  const px=cx+r*Math.sin(a), py=cy-r*Math.cos(a);
+  const pin=py-Math.sqrt(L*L-(px-cx)*(px-cx)), pTop=pin-22;
+  const down=(th%360)<180;
+  const il=i===0?12*Math.sin(th*Math.PI/180):0, el=i===3?12*Math.sin((th-540)*Math.PI/180):0;
+  const ivY=72+il, evY=72+el;
+  let s='';
+  // ports
+  s+=`<path d="M40,30 L150,30 L150,62 L128,62 L128,48 L40,48 Z" style="fill:var(--fuel-pale);stroke:var(--metal-dark);stroke-width:2"/>`;
+  s+=`<path d="M320,30 L210,30 L210,62 L232,62 L232,48 L320,48 Z" style="fill:var(--soft);stroke:var(--metal-dark);stroke-width:2"/>`;
+  // gas above piston
+  let gc='var(--fuel-pale)',go=.55;
+  if(i===1){go=.55+.45*((th-180)/180);}
+  else if(i===2){const k=(th-360)/180; gc=k<.45?'#F6B64A':'var(--exh)'; go=k<.45?.95-k:.35;}
+  else if(i===3){gc='var(--exh)';go=.35*(1-(th-540)/180)+.08;}
+  s+=`<rect x="120" y="62" width="120" height="${Math.max(0,pTop-62)}" style="fill:${gc};opacity:${go.toFixed(2)}"/>`;
+  s+=`<path d="M120,62 L120,212 M240,62 L240,212" style="stroke:var(--metal-dark);stroke-width:6"/>`;
+  s+=`<path d="M114,62 L150,62 M210,62 L246,62" style="stroke:var(--metal-dark);stroke-width:4"/>`;
+  // valves
+  s+=`<line x1="150" y1="14" x2="150" y2="${ivY}" style="stroke:var(--ink);stroke-width:3"/><path d="M134,${ivY} L166,${ivY}" style="stroke:var(--ink);stroke-width:5;stroke-linecap:round"/>`;
+  s+=`<line x1="210" y1="14" x2="210" y2="${evY}" style="stroke:var(--ink);stroke-width:3"/><path d="M194,${evY} L226,${evY}" style="stroke:var(--ink);stroke-width:5;stroke-linecap:round"/>`;
+  // plug + spark
+  s+=`<rect x="175" y="36" width="10" height="26" style="fill:var(--metal);stroke:var(--ink);stroke-width:1.5"/>`;
+  if(th>=345&&th<=392) s+=`<path d="M180,64 L172,76 L184,74 L176,90" style="fill:none;stroke:var(--danger);stroke-width:3"/><text x="192" y="84" style="font-size:15px;font-weight:700;fill:var(--danger)">火花</text>`;
+  // piston, rod, crank
+  s+=`<rect x="124" y="${pTop}" width="112" height="36" rx="3" style="fill:var(--metal);stroke:var(--ink);stroke-width:2"/>`;
+  s+=`<line x1="${cx}" y1="${pin}" x2="${px}" y2="${py}" style="stroke:var(--metal-dark);stroke-width:9;stroke-linecap:round"/>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${r+8}" style="fill:none;stroke:var(--line);stroke-width:2"/><line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}" style="stroke:var(--power);stroke-width:8;stroke-linecap:round"/><circle cx="${cx}" cy="${cy}" r="5" style="fill:var(--ink)"/>`;
+  s+=`<path d="M${down?'258,'+(pTop+2)+' L258,'+(pTop+38):'258,'+(pTop+38)+' L258,'+(pTop+2)}" style="stroke:var(--ink);stroke-width:3" marker-end="url(#arK)"/>`;
+  const ph=MOT.on?th*0.6:0;
+  if(i===0) s+=`<path d="M52,39 L128,39 L142,${pTop-6}" style="fill:none;stroke:var(--fuel-pale);stroke-width:9"/><path d="M52,39 L128,39 L142,${pTop-6}" style="fill:none;stroke:var(--air);stroke-width:3;stroke-dasharray:6 4;stroke-dashoffset:${-ph}" marker-end="url(#arA)"/>`;
+  if(i===3) s+=`<path d="M218,${pTop-6} L232,39 L312,39" style="fill:none;stroke:var(--exh);stroke-width:3;stroke-dasharray:9 3 2 3;stroke-dashoffset:${-ph}" marker-end="url(#arE)"/>`;
+  if(i===2&&th<470) s+=`<text x="180" y="${Math.max(80,pTop-10)}" text-anchor="middle" style="font-size:15px;font-weight:700;fill:var(--ink)">膨張して押す</text>`;
+  s+=`<path d="M${cx+44},${cy-18} A44,44 0 0 1 ${cx+44},${cy+18}" style="fill:none;stroke:var(--power);stroke-width:2.5" marker-end="url(#arP)"/>`;
+  const T=(x,y,t,an)=>`<text x="${x}" y="${y}" ${an?'text-anchor="'+an+'"':''} style="font-size:16px;fill:var(--ink)">${t}</text>`;
+  s+=T(40,24,'吸気口（キャブから）')+T(320,24,'排気口','end')+T(114,124,'シリンダー','end')+T(114,230,'クランク軸','end')+T(250,186,'コンロッド')+T(270,pTop+24,'ピストン')+T(4,76,'吸気バルブ')+T(356,76,'排気バルブ','end');
+  s+=`<text x="4" y="264" style="font-size:15px;fill:var(--muted)">バルブ 吸気:${il>0.5?'開':'閉'} 排気:${el>0.5?'開':'閉'}　クランク ${Math.round(th)}°</text>`;
+  $('#svg-st').innerHTML=s;
+  if(ST.idx!==i){ST.idx=i; $('#st-text').innerHTML=st.txt+'<br><span class="note">4つの行程でクランク軸は2回転します（0〜720°）。</span>';
+    $$('#st-sel button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===i));}
+}
+function stLoop(ts){
+  if(!ST.playing) return;
+  if(ST.last) ST.th+=Math.min(50,ts-ST.last)*0.1;
+  ST.last=ts; renderStroke(); ST.raf=requestAnimationFrame(stLoop);
+}
+function stPlay(on){
+  ST.playing=on&&MOT.on; ST.last=0; cancelAnimationFrame(ST.raf);
+  if(ST.playing) ST.raf=requestAnimationFrame(stLoop);
+  $('#st-play').textContent=ST.playing?'⏸ 止める':'▶ 動かす';
+}
+
+/* ---------------- B 章 ---------------- */
+const B={lever:'ON',engine:'run',tank:'many',vac:'ok',sel:null,dxS:10,lvlS:50};
+function tween(obj,key,target,ms,render){
+  cancelAnimationFrame(obj['_r'+key]);
+  if(!MOT.on||Math.abs(obj[key]-target)<0.01){obj[key]=target;render();return;}
+  const from=obj[key], t0=performance.now();
+  const f=now=>{const k=Math.min(1,(now-t0)/ms), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    obj[key]=from+(target-from)*e; render(); if(k<1) obj['_r'+key]=requestAnimationFrame(f);};
+  obj['_r'+key]=requestAnimationFrame(f);
+}
+function bAnim(){const st=bState(); tween(B,'dxS',st.vacOpen?10:0,450,renderB); tween(B,'lvlS',st.lvl,800,renderB);}
+function bState(){
+  const lvl=B.tank==='many'?50:132;
+  const onWet=lvl<110, resWet=lvl<146;
+  const inletWet = B.lever==='ON'?onWet:(B.lever==='RES'?resWet:false);
+  const vacOpen = B.engine==='run' || B.vac==='bad';
+  const flow = B.lever!=='OFF' && inletWet && vacOpen;
+  return {lvl,onWet,resWet,inletWet,vacOpen,flow};
+}
+function renderB(){
+  const st=bState(); const sel=B.sel; let s='';
+  const F='var(--fuel)', FF='var(--fuel-fill)';
+  // tank
+  s+=`<defs><clipPath id="tankClip"><path d="M20,40 Q20,14 60,12 L300,12 Q340,14 340,40 L340,150 L210,150 L210,158 L150,158 L150,150 L20,150 Z"/></clipPath></defs>`;
+  s+=`<g data-part="p1" class="hit"><path d="M20,40 Q20,14 60,12 L300,12 Q340,14 340,40 L340,150 L210,150 L210,158 L150,158 L150,150 L20,150 Z" style="${hlStyle(sel==='p1','fill:var(--surface);stroke:var(--ink);stroke-width:2.5')}"/></g>`;
+  const lv0=B.lvlS;
+  s+=`<rect x="0" y="${lv0}" width="360" height="${160-lv0}" clip-path="url(#tankClip)" style="fill:${FF};opacity:.75;pointer-events:none"/>`;
+  s+=`<line x1="22" y1="${lv0}" x2="338" y2="${lv0}" clip-path="url(#tankClip)" style="stroke:${F};stroke-width:2;pointer-events:none"/>`;
+  s+=`<text x="30" y="${Math.max(34,lv0-6)}" style="font-size:15px;fill:var(--ink)">燃料の面</text>`;
+  // pipes
+  s+=`<rect x="166" y="110" width="8" height="48" style="fill:${st.onWet?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1.5"/>`;
+  s+=`<rect x="186" y="143" width="8" height="15" style="fill:${st.resWet?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1.5"/>`;
+  s+=`<text x="160" y="104" text-anchor="end" style="font-size:15px;font-weight:700;fill:var(--ink)">ONの口</text><line x1="162" y1="106" x2="168" y2="110" style="stroke:var(--ink)"/>`;
+  s+=`<text x="244" y="136" style="font-size:15px;font-weight:700;fill:var(--ink)">RESの口</text><line x1="242" y1="134" x2="196" y2="143" style="stroke:var(--ink)"/>`;
+  if(B.lever==='ON'&&st.onWet&&st.flow) s+=`<path d="M170,100 L170,150" style="stroke:${F};stroke-width:3" marker-end="url(#arF)"/>`;
+  if(B.lever==='RES'&&st.resWet&&st.flow) s+=`<path d="M190,136 L190,152" style="stroke:${F};stroke-width:3" marker-end="url(#arF)"/>`;
+  // cock body
+  const cockFuel=st.inletWet&&B.lever!=='OFF';
+  s+=`<g data-part="p2" class="hit"><rect x="140" y="160" width="172" height="64" rx="8" style="${hlStyle(sel==='p2','fill:var(--body);stroke:var(--ink);stroke-width:2')}"/>`;
+  s+=`<rect x="166" y="158" width="8" height="24" style="fill:${st.onWet?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1"/><rect x="186" y="158" width="8" height="24" style="fill:${st.resWet?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1"/>`;
+  // rotor
+  s+=`<circle cx="180" cy="198" r="17" style="fill:var(--surface);stroke:var(--ink);stroke-width:2"/>`;
+  let ch='';
+  if(B.lever==='ON') ch='M170,184 L180,198 L197,198'; else if(B.lever==='RES') ch='M190,184 L186,198 L197,198'; else ch='M170,208 L190,208';
+  s+=`<path d="${ch}" style="fill:none;stroke:${B.lever!=='OFF'&&cockFuel?FF:'var(--line)'};stroke-width:6;stroke-linecap:round"/>`;
+  s+=`<text x="148" y="238" style="font-size:14px;fill:var(--muted)">切替部</text><text x="180" y="203" text-anchor="middle" style="font-size:12px;font-weight:800;fill:var(--ink)">${B.lever}</text>`;
+  // vac section
+  const dx=B.dxS;
+  s+=`<rect x="197" y="194" width="25" height="8" style="fill:${cockFuel?FF:'var(--surface)'}"/>`;
+  s+=`<rect x="222" y="170" width="44" height="46" style="fill:${cockFuel&&st.vacOpen?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1.5"/>`;
+  s+=`<rect x="270" y="170" width="36" height="46" style="fill:var(--surface);stroke:var(--vac);stroke-width:1.5"/>`;
+  s+=`<path d="M${266+dx},168 Q${272+dx},193 ${266+dx},218" style="fill:none;stroke:var(--ink);stroke-width:3"/>`;
+  s+=`<rect x="${226+dx}" y="192" width="${40}" height="4" style="fill:var(--metal-dark)"/><rect x="${224+dx}" y="188" width="6" height="12" rx="2" style="fill:var(--ink)"/>`;
+  s+=`<path d="M${270+dx},193 l6,-6 l6,12 l6,-12 l6,12 l6,-6" style="fill:none;stroke:var(--metal-dark);stroke-width:2"/>`;
+  s+=`<text x="226" y="164" style="font-size:14px;fill:var(--muted)">負圧作動部</text>`;
+  s+=`<text x="256" y="240" style="font-size:14px;font-weight:700;fill:${st.vacOpen?'var(--ok)':'var(--muted)'}">弁：${st.vacOpen?'開':'閉'}</text></g>`;
+  // vacuum hose
+  s+=`<g data-part="p3" class="hit"><path d="M306,190 L338,190 L338,300" style="${hlStyle(sel==='p3','fill:none;stroke:var(--vac);stroke-width:6')}"/><path d="M306,190 L338,190 L338,300" style="fill:none;stroke:var(--paper);stroke-width:2"/></g>`;
+  s+=`<rect x="226" y="302" width="130" height="50" rx="6" style="fill:var(--surface);stroke:var(--vac);stroke-width:1.5;stroke-dasharray:4 3"/>`;
+  s+=`<text x="234" y="322" style="font-size:14px;fill:var(--ink)">後ろシリンダー</text><text x="234" y="342" style="font-size:14px;fill:var(--ink)">ヘッドの負圧継手</text>`;
+  s+=`<text x="324" y="258" text-anchor="end" style="font-size:14px;fill:var(--vac)">${B.engine==='run'?'負圧あり':'負圧なし'}</text>`;
+  if(B.engine==='run') s+=`<path d="M346,296 L346,266" style="stroke:var(--vac);stroke-width:2.5" marker-end="url(#arV)"/>`;
+  // outlet + hose + T
+  const down = st.flow? 'full' : 'rest';
+  const hoseCol = st.flow?FF:'url(#hatchFuel)';
+  s+=`<rect x="240" y="216" width="8" height="18" style="fill:${st.flow?FF:'var(--surface)'};stroke:var(--ink);stroke-width:1"/>`;
+  s+=`<g data-part="p4" class="hit"><path d="M244,234 C244,290 180,286 180,338" style="${hlStyle(sel==='p4','fill:none;stroke:var(--ink);stroke-width:11')}"/><path d="M244,234 C244,290 180,286 180,338" style="fill:none;stroke:${st.flow?FF:'var(--fuel-pale)'};stroke-width:7"/></g>`;
+  s+=`<g data-part="p5" class="hit"><path d="M180,338 L180,350 M90,352 L270,352" style="${hlStyle(sel==='p5','fill:none;stroke:var(--ink);stroke-width:12;stroke-linecap:round')}"/><path d="M180,338 L180,350 M90,352 L270,352" style="fill:none;stroke:${st.flow?FF:'var(--fuel-pale)'};stroke-width:7;stroke-linecap:round"/></g>`;
+  s+=`<path d="M90,352 L90,398 M270,352 L270,398" style="fill:none;stroke:var(--ink);stroke-width:11"/><path d="M90,352 L90,398 M270,352 L270,398" style="fill:none;stroke:${st.flow?FF:'var(--fuel-pale)'};stroke-width:7"/>`;
+  if(st.flow){
+    s+=PC(B.lever==='ON'?'M170,112 L170,158':'M190,145 L190,158',3)+PC(ch,3)+PC('M197,198 L262,198',3)+PC('M244,218 L244,234 C244,290 180,286 180,338 L180,352',3.5)+PC('M180,352 L90,352 L90,398',3.5)+PC('M180,352 L270,352 L270,398',3.5);
+    s+=`<path d="M252,252 C256,270 240,280 222,286" style="fill:none;stroke:${F};stroke-width:3" marker-end="url(#arF)"/>`;
+    s+=`<path d="M160,364 L112,364" style="stroke:${F};stroke-width:3" marker-end="url(#arF)"/><path d="M200,364 L248,364" style="stroke:${F};stroke-width:3" marker-end="url(#arF)"/>`;
+    s+=`<text x="120" y="300" style="font-size:15px;font-weight:700;fill:var(--fuel)">流れている</text>`;
+  } else {
+    s+=`<text x="60" y="300" style="font-size:15px;font-weight:700;fill:var(--muted)">流れていない</text><text x="60" y="318" style="font-size:14px;fill:var(--muted)">（ホースに残った燃料は残る）</text>`;
+  }
+  // carbs
+  for(const [x,t] of [[90,'前キャブ'],[270,'後キャブ']]){
+    s+=`<g data-part="p6" class="hit"><rect x="${x-50}" y="398" width="100" height="26" rx="4" style="${hlStyle(sel==='p6','fill:var(--metal);stroke:var(--ink);stroke-width:1.5')}"/><path d="M${x-40},424 L${x+40},424 L${x+34},456 Q${x},464 ${x-34},456 Z" style="${hlStyle(sel==='p6','fill:var(--body);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+    s+=`<text x="${x}" y="417" text-anchor="middle" style="font-size:15px;font-weight:700;fill:var(--ink)">${t}</text><text x="${x}" y="447" text-anchor="middle" style="font-size:14px;fill:var(--muted)">燃料入口→C1</text>`;
+  }
+  s+=marker('p1',318,34,sel)+marker('p2',120,190,sel,140,190)+marker('p3',346,212,sel)+marker('p4',214,262,sel,226,272)+marker('p5',32,352,sel,90,352)+marker('p6',180,420,sel,140,414);
+  s+=selLabel(sel,4,466);
+  $('#svg-b').innerHTML=s;
+  $('#b-parts').innerHTML=chipsHTML(['p1','p2','p3','p4','p5','p6'],sel);
+  $('#b-info').innerHTML=sel?infoCard(sel):'';
+  // status
+  const lv={ON:'ON：高い位置の口',RES:'RES：底に近い口',OFF:'OFF：どちらの口にもつながらない'}[B.lever];
+  let inl = B.lever==='OFF'?'—':(st.inletWet?'口が燃料の中にある':'油面が口より低く、燃料が入らない');
+  const pill=(t,c)=>`<span class="state-pill ${c}">${t}</span>`;
+  $('#b-status').innerHTML=`<dt>取り出し口</dt><dd>${lv}／${inl}</dd>
+  <dt>負圧作動部</dt><dd>${st.vacOpen?pill('開','st-open'):pill('閉','st-closed')} ${B.engine==='run'?'エンジンの負圧でダイヤフラムが引かれて開く':(B.vac==='bad'?'負圧はないが、弁が閉じきらない':'負圧がなく、ばねが弁を押して閉じる')}</dd>
+  <dt>キャブへ</dt><dd>${st.flow?pill('流れる','st-open'):pill('流れない','st-closed')}</dd>`;
+  let why='';
+  if(B.lever==='OFF') why='レバーがOFFなので、タンクの口とその先の通路がつながっていません。ホースとフロート室にすでに入っている燃料は、すぐには消えません。';
+  else if(!st.inletWet) why='ONの口は高い所にあるため、燃料が減って油面が口より下がると入らなくなります。RESに切り替えると底に近い口から取れます。同じタンクの残りを使うだけで、別のタンクがあるわけではありません。';
+  else if(!st.vacOpen) why=`レバーは${B.lever}でも、エンジンが止まって負圧がないため、負圧作動部の弁が閉じています。ON／RESの選択と、止める弁の働きは別です。`;
+  else if(B.engine==='stop') why='エンジンは止まっているのに、負圧作動部の弁が閉じきらないため流れ続けています。この場合、キャブ側ではフロートバルブだけが流入を止めることになります（D章②③）。';
+  else why=`エンジンの吸気の負圧が負圧ホース③で伝わり、弁が開いています。燃料は${B.lever}の口→切替部→負圧作動部→ホース④→燃料継手⑤→前後のキャブへ下ります。キャブに入る量はフロートバルブが決めます（C・D章）。`;
+  $('#b-why').innerHTML=why;
+  for(const k of ['lever','engine','tank','vac']) $$('#b-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===B[k]));
+}
+
+/* ---------------- キャブ断面（C・D共通） ---------------- */
+const PIV={x:62,y:292}, PHI_MIN=-0.35, PHI_DEBRIS=-0.0733, L_FULL=1.6, L_JET=0.41;
+const yOfL=L=>450-110*L;
+function floatGeom(L,fv){
+  const yL=yOfL(L); let phi;
+  if(fv==='sunk') phi=PHI_MIN;
+  else{
+    const T=(yL+6)-PIV.y, R=Math.hypot(100,56), dl=Math.atan2(100,56);
+    phi=Math.acos(Math.max(-1,Math.min(1,T/R)))-dl;
+    if(phi<PHI_MIN) phi=PHI_MIN;
+  }
+  const stop=fv==='debris'?PHI_DEBRIS:0; let contact=false;
+  if(phi>=stop-1e-9){phi=stop;contact=true;}
+  let tangY=PIV.y+(-34*Math.sin(phi)-4*Math.cos(phi));
+  let open=Math.max(0,Math.min(1,(tangY-288)/8));
+  // 先端がシートのすぐ手前まで来たら「当たった」とみなす（ごく小さなすき間を残さない）
+  const minOpen=fv==='debris'?(PIV.y+(-34*Math.sin(PHI_DEBRIS)-4*Math.cos(PHI_DEBRIS))-288)/8:0;
+  if(!contact&&fv!=='sunk'&&open-minOpen<0.04){phi=stop;contact=true;tangY=PIV.y+(-34*Math.sin(phi)-4*Math.cos(phi));open=Math.max(0,Math.min(1,(tangY-288)/8));}
+  return {yL,phi,tangY,open,contact};
+}
+function carbSection(o){
+  // o: {mode:'float'|'suck'|'d', L, fv, thr, starter, inflow, out, cons, H, sel, running}
+  const sel=o.sel; const g=floatGeom(o.L,o.fv); const full=o.L>=L_FULL-1e-6;
+  const FF='var(--fuel-fill)', F='var(--fuel)';
+  const thr=o.thr||0; const yPb=196-48*thr;
+  let s='';
+  // ---- body ----
+  s+=`<path d="M0,140 L0,100 L60,100 L60,98 L300,98 L300,100 L346,100 L346,140 Z" style="fill:var(--body);stroke:none"/>`;
+  s+=`<rect x="0" y="205" width="346" height="63" style="fill:var(--body)"/>`;
+  s+=`<line x1="0" y1="140" x2="360" y2="140" style="stroke:var(--metal-dark);stroke-width:2"/><line x1="0" y1="205" x2="360" y2="205" style="stroke:var(--metal-dark);stroke-width:2"/>`;
+  s+=`<g data-part="c20" class="hit"><rect x="0" y="141" width="360" height="63" style="fill:${sel==='c20'?'var(--soft)':'var(--paper)'};stroke:${sel==='c20'?'var(--hl)':'none'};stroke-width:3"/></g>`;
+  // vacuum chamber housing
+  s+=`<g data-part="c13" class="hit"><path d="M100,98 L100,60 Q100,14 175,14 Q250,14 250,60 L250,98 Z" style="${hlStyle(sel==='c13','fill:var(--body2);stroke:var(--metal-dark);stroke-width:2')}"/></g>`;
+  const pTop=yPb-95;
+  s+=`<path d="M104,96 L104,62 Q104,20 175,20 Q246,20 246,62 L246,96 Q210,96 200,${pTop} L150,${pTop} Q140,96 104,96 Z" style="fill:${o.mode==='suck'&&thr>0.04?'#C9D8F2':'var(--paper)'};opacity:.9;pointer-events:none"/>`;
+  // atmospheric passage
+  s+=`<g data-part="c14" class="hit"><path d="M66,140 L66,112 L104,112" style="${hlStyle(sel==='c14','fill:none;stroke:var(--paper);stroke-width:7')}"/></g>`;
+  s+=`<path d="M104,100 L146,100 L146,128 L104,128 Z" style="fill:var(--paper);opacity:.9;pointer-events:none"/>`;
+  // piston
+  s+=`<g data-part="c11" class="hit"><rect x="150" y="${pTop}" width="50" height="95" rx="3" style="${hlStyle(sel==='c11','fill:var(--metal);stroke:var(--ink);stroke-width:1.8')}"/></g>`;
+  s+=`<rect x="186" y="${yPb-6}" width="6" height="6" style="fill:var(--paper);stroke:var(--ink);stroke-width:1"/>`;
+  // diaphragm
+  s+=`<g data-part="c12" class="hit"><path d="M100,96 Q126,${(96+pTop)/2+6} 150,${pTop} M200,${pTop} Q224,${(96+pTop)/2+6} 250,96" style="${hlStyle(sel==='c12','fill:none;stroke:var(--ink);stroke-width:3.5')}"/></g>`;
+  // spring
+  let sp=`M175,22`; const n=7; for(let i=1;i<=n;i++){const y=22+(pTop+8-22)*i/n; sp+=` L${i%2?163:187},${y}`;}
+  s+=`<path d="${sp}" style="fill:none;stroke:var(--metal-dark);stroke-width:2"/>`;
+  // jet needle
+  s+=`<g data-part="c10" class="hit"><path d="M172,${yPb} L178,${yPb} L176.5,${yPb+86} L173.5,${yPb+86} Z" style="${hlStyle(sel==='c10','fill:var(--ink)')}"/></g>`;
+  // throttle
+  const ang=(75*(1-thr))*Math.PI/180; const tx=Math.cos(ang)*30, ty=Math.sin(ang)*30;
+  s+=`<g data-part="c15" class="hit"><line x1="${300-tx}" y1="${172-ty}" x2="${300+tx}" y2="${172+ty}" style="${hlStyle(sel==='c15','stroke:var(--ink);stroke-width:4;stroke-linecap:round')}"/><circle cx="300" cy="172" r="4" style="fill:var(--ink)"/></g>`;
+  // ---- float bowl ----
+  s+=`<g data-part="c7" class="hit"><path d="M26,268 L26,440 Q26,454 40,454 L312,454 Q326,454 326,440 L326,268 Z" style="${hlStyle(sel==='c7','fill:var(--surface);stroke:var(--metal-dark);stroke-width:4')}"/></g>`;
+  s+=`<g data-part="c21" class="hit"><rect x="24" y="266" width="304" height="5" style="${hlStyle(sel==='c21','fill:var(--ink)')}"/></g>`;
+  // fuel in bowl
+  const yL=full?272:g.yL;
+  s+=`<defs><clipPath id="bowlClip${o.mode}"><path d="M30,272 L30,440 Q30,450 40,450 L312,450 Q322,450 322,440 L322,272 Z"/></clipPath></defs>`;
+  if(o.L>0.005) s+=`<rect x="0" y="${yL}" width="360" height="${460-yL}" clip-path="url(#bowlClip${o.mode})" style="fill:${FF};opacity:.7;pointer-events:none"/><line x1="30" y1="${yL}" x2="322" y2="${yL}" style="stroke:${F};stroke-width:2;pointer-events:none"/>`;
+  // normal level mark
+  s+=`<line x1="30" y1="${yOfL(1)}" x2="100" y2="${yOfL(1)}" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:3 2"/><text x="34" y="${yOfL(1)-6}" style="font-size:14px;fill:var(--muted)">規定の油面</text>`;
+  // float
+  const deg=-g.phi*180/Math.PI;
+  s+=`<g transform="rotate(${deg} ${PIV.x} ${PIV.y})">`;
+  s+=`<g data-part="c6" class="hit"><rect x="107" y="328" width="110" height="40" rx="18" style="${hlStyle(sel==='c6','fill:var(--surface);stroke:var(--ink);stroke-width:2')};opacity:.92"/>`;
+  if(o.fv==='sunk') s+=`<rect x="110" y="346" width="104" height="19" rx="8" style="fill:${FF};opacity:.9"/>`;
+  s+=`</g><g data-part="c4" class="hit"><path d="M${PIV.x},${PIV.y} L112,334 M${PIV.x},${PIV.y} L96,288" style="${hlStyle(sel==='c4','fill:none;stroke:var(--ink);stroke-width:4;stroke-linecap:round')}"/></g></g>`;
+  // pivot
+  s+=`<line x1="62" y1="268" x2="62" y2="292" style="stroke:var(--metal-dark);stroke-width:6"/>`;
+  s+=`<g data-part="c5" class="hit"><circle cx="62" cy="292" r="6" style="${hlStyle(sel==='c5','fill:var(--surface);stroke:var(--ink);stroke-width:2.5')}"/></g>`;
+  // towers (in front of float)
+  const colTop=(full||o.running&&o.mode==='suck')?205:Math.max(205,yL);
+  const colWet=o.L>L_JET-0.02||full||(o.mode==='suck');
+  s+=`<rect x="163" y="268" width="24" height="117" style="fill:var(--body);stroke:var(--metal-dark);stroke-width:1.5"/>`;
+  s+=`<g data-part="c9" class="hit"><rect x="170" y="200" width="10" height="185" style="${hlStyle(sel==='c9','fill:var(--paper);stroke:var(--ink);stroke-width:1.2')}"/></g>`;
+  if(colWet) s+=`<rect x="171" y="${colTop}" width="8" height="${405-colTop}" style="fill:${FF};pointer-events:none"/>`;
+  s+=`<g data-part="c8" class="hit"><path d="M165,385 L185,385 L185,405 L165,405 Z" style="${hlStyle(sel==='c8','fill:var(--metal-dark);stroke:var(--ink);stroke-width:1.5')}"/><rect x="172" y="385" width="6" height="20" style="fill:${colWet?FF:'var(--paper)'}"/></g>`;
+  // re-draw needle inside column
+  s+=`<path d="M172.5,${Math.max(yPb,200)} L177.5,${Math.max(yPb,200)} L176.5,${yPb+86} L173.5,${yPb+86} Z" style="fill:var(--ink);pointer-events:none"/>`;
+  // slow system
+  const slowWet=o.L>0.2||full;
+  s+=`<g data-part="c16" class="hit"><rect x="243" y="268" width="12" height="112" style="${hlStyle(sel==='c16','fill:var(--body);stroke:var(--metal-dark);stroke-width:1.5')}"/><path d="M249,380 L249,222 L318,222 L318,205" style="${hlStyle(sel==='c16','fill:none;stroke:var(--paper);stroke-width:6')}"/></g>`;
+  if(slowWet) s+=`<path d="M249,380 L249,${full||o.running?222:Math.max(222,yL)}${full||o.running?' L318,222 L318,205':''}" style="fill:none;stroke:${FF};stroke-width:5;pointer-events:none"/>`;
+  // starter
+  const stOn=o.starter; const stWet=(o.L>0.15)||full;
+  s+=`<g data-part="c17" class="hit"><rect x="279" y="268" width="10" height="122" style="${hlStyle(sel==='c17','fill:var(--body);stroke:var(--metal-dark);stroke-width:1.5')}"/><path d="M284,390 L284,244 L${stOn?341:318},244 M341,244 L341,205" style="${hlStyle(sel==='c17','fill:none;stroke:var(--paper);stroke-width:6')}"/><rect x="${stOn?334:316}" y="236" width="24" height="16" rx="3" style="fill:var(--metal-dark);stroke:var(--ink);stroke-width:1.2"/></g>`;
+  if(stWet) s+=`<path d="M284,390 L284,${(stOn&&o.running)||full?244:Math.max(244,yL)}${(stOn&&o.running)?' L330,244':''}" style="fill:none;stroke:${FF};stroke-width:4;pointer-events:none"/>`;
+  if(full) s+=`<path d="M341,244 L341,207" style="stroke:${FF};stroke-width:4"/>`;
+  // vent
+  s+=`<g data-part="c19" class="hit"><path d="M304,272 L304,261 L360,261" style="${hlStyle(sel==='c19','fill:none;stroke:var(--paper);stroke-width:6')}"/></g>`;
+  if(full) s+=`<path d="M304,272 L304,261 L358,261" style="fill:none;stroke:${FF};stroke-width:4;pointer-events:none"/>`;
+  // inlet + seat + valve
+  const inletWet=o.H===undefined?true:o.H>0.001;
+  s+=`<g data-part="c1" class="hit"><rect x="0" y="240" width="16" height="10" style="${hlStyle(sel==='c1','fill:var(--metal);stroke:var(--ink);stroke-width:1.2')}"/><path d="M8,245 L96,245 L96,256" style="fill:none;stroke:${inletWet?FF:'var(--paper)'};stroke-width:6"/></g>`;
+  s+=`<g data-part="c2" class="hit"><path d="M88,256 L94,262 L94,264 L88,264 Z M104,256 L98,262 L98,264 L104,264 Z" style="${hlStyle(sel==='c2','fill:var(--ink)')}"/></g>`;
+  const apex=g.tangY-29;
+  s+=`<g data-part="c3" class="hit"><path d="M96,${apex} L100,${apex+8} L100,${g.tangY} L92,${g.tangY} L92,${apex+8} Z" style="${hlStyle(sel==='c3','fill:var(--metal-dark);stroke:var(--ink);stroke-width:1.2')}"/></g>`;
+  if(o.fv==='debris') s+=`<circle cx="99.6" cy="263.3" r="2.4" style="fill:var(--danger);stroke:var(--ink);stroke-width:.8"/>`;
+  // drain
+  s+=`<g data-part="c18" class="hit"><rect x="283" y="446" width="12" height="16" style="${hlStyle(sel==='c18','fill:var(--metal-dark);stroke:var(--ink);stroke-width:1.2')}"/><rect x="279" y="458" width="20" height="6" rx="2" style="fill:var(--ink)"/></g>`;
+  // ---- flows ----
+  const tt=o.t||0, spd=12+40*thr;
+  const air=(y,x1,x2)=>`<path d="M${x1},${y} L${x2},${y}" style="stroke:var(--air);stroke-width:3;stroke-dasharray:6 4;stroke-dashoffset:${(-tt*spd).toFixed(1)}" marker-end="url(#arA)"/>`;
+  const spray=(d,w)=>`<path d="${d}" style="fill:none;stroke:${F};stroke-width:${w||2.5};stroke-dasharray:2 3;stroke-dashoffset:${(-tt*14).toFixed(1)}"/>`;
+  if(o.mode==='suck'){
+    if(thr>0.04){ s+=air(160,8,60)+air(186,8,60)+air(186,208,262)+air(160,316,356)+air(186,316,356); }
+    else s+=air(192,8,40)+`<path d="M322,196 L356,196" style="stroke:var(--air);stroke-width:2;stroke-dasharray:3 3;stroke-dashoffset:${(-tt*8).toFixed(1)}" marker-end="url(#arA)"/>`;
+    // fuel up the column
+    if(thr>0.04){ s+=`<path d="M160,380 L160,${214}" style="stroke:${F};stroke-width:3" marker-end="url(#arF)"/>`+PJ('M175,400 L175,204',tt*(6+30*thr),2.5);
+      s+=spray('M180,198 q14,-8 30,-4 M182,192 q18,-10 36,-8'); }
+    else s+=PJ('M249,378 L249,222 L318,222 L318,206',tt*6,2.5)+spray('M320,203 q10,-6 24,-4');
+    if(stOn) s+=PJ('M284,388 L284,244 L341,244 L341,206',tt*10,2.5)+spray('M343,203 q6,-8 14,-10',3);
+    // pressure labels
+    s+=`<rect x="192" y="302" width="96" height="22" rx="4" style="fill:var(--paper);opacity:.9"/><text x="196" y="319" style="font-size:15px;font-weight:700;fill:var(--ink)">油面に大気圧</text><path d="M214,324 L214,${yL-2}" style="stroke:var(--ink);stroke-width:2" marker-end="url(#arK)"/>`;
+    if(thr>0.04) s+=`<text x="206" y="232" style="font-size:15px;font-weight:700;fill:var(--air)">圧力が低い</text><line x1="204" y1="227" x2="188" y2="200" style="stroke:var(--air);stroke-width:1.5"/>`;
+    else s+=`<text x="232" y="236" style="font-size:14px;font-weight:700;fill:var(--air)">スロットル下流が低圧</text>`;
+ if(thr>0.04) s+=`<text x="256" y="30" style="font-size:14px;font-weight:700;fill:var(--air)">負圧室も低圧に</text><line x1="262" y1="36" x2="228" y2="54" style="stroke:var(--air);stroke-width:1.5"/>`;
+  }
+  if(o.mode!=='suck'){
+    // inflow arrow
+    if(o.inflow>0.0005){ const w=1.5+3.5*Math.min(1,o.inflow/0.25);
+      s+=`<path d="M40,232 L80,232" style="stroke:${F};stroke-width:${w}" marker-end="url(#arF)"/><path d="M104,272 L114,${Math.min(yL-4,306)}" style="stroke:${F};stroke-width:${w}" marker-end="url(#arF)"/>`;
+      s+=PJ('M4,245 L96,245 L96,262',o.ph||0,3)+PJ(`M100,268 L106,${Math.max(272,yL-2)}`,o.ph||0,3,F); }
+    if(o.cons>0) s+=`<path d="M320,200 q12,-8 30,-8" style="fill:none;stroke:${F};stroke-width:2.5;stroke-dasharray:2 3;stroke-dashoffset:${(-(o.t||0)*14).toFixed(1)}" marker-end="url(#arF)"/>`;
+    if(full && o.out>0.0005){
+      s+=`<rect x="179" y="199" width="181" height="6" style="fill:${FF}"/>`+PJ('M180,202 L360,202',o.op||0,2.5)+PJ('M304,272 L304,261 L360,261',o.op||0,2.5)+PJ('M175,400 L175,204',o.op||0,2.5);
+      s+=`<path d="M186,192 L352,192" style="stroke:var(--danger);stroke-width:3;stroke-dasharray:5 3;stroke-dashoffset:${(-(o.op||0)).toFixed(1)}" marker-end="url(#arD)"/>`;
+      s+=`<text x="200" y="184" style="font-size:14px;font-weight:700;fill:var(--danger)">あふれてエンジン側へ</text>`;
+      s+=`<path d="M350,266 L350,290" style="stroke:var(--danger);stroke-width:3;stroke-dasharray:5 3;stroke-dashoffset:${(-(o.op||0)).toFixed(1)}" marker-end="url(#arD)"/>`;
+    }
+  }
+  // labels on sides
+  s+=`<text x="4" y="93" style="font-size:14px;fill:var(--muted)">←エアクリーナー側</text><text x="356" y="93" text-anchor="end" style="font-size:14px;fill:var(--muted)">エンジン側→</text>`;
+  // markers
+  const M=(id,x,y,lx,ly)=>marker(id,x,y,sel,lx,ly);
+  if(o.mode==='suck'){
+    s+=M('c13',128,52)+M('c12',276,82,248,94)+M('c14',32,124,64,120)+M('c11',175,pTop+40)+M('c10',128,196,172,yPb+6)+M('c20',236,152)+M('c15',336,156,306,168)+M('c9',140,300,170,300)+M('c8',136,398,164,396)+M('c16',228,410,248,378)+M('c17',306,410,286,388);
+  } else {
+    s+=M('c1',24,222,10,240)+M('c2',128,252,100,259)+M('c3',128,284,100,280)+M('c4',88,310,80,292)+M('c5',34,300,56,294)+M('c6',140,348)+M('c7',52,432)+M('c21',220,300,222,271)+M('c18',256,440,282,452)+M('c19',340,300,330,262);
+  }
+  return s;
+}
+
+/* ---------------- C 章 ---------------- */
+const C={step:3,tab:'float',thr:0,thrS:0,sweep:false,starter:0,sel:null,t:0,raf:0,t0:0};
+function c3svg(){
+  const suck=C.tab==='suck';
+  return carbSection({mode:C.tab,L:1,fv:'ok',thr:suck?C.thrS:0,starter:suck&&C.starter===1,sel:C.sel,running:suck,t:MOT.on?C.t:0})+bikeLocator(2,-2,0.24)+selLabel(C.sel,4,466);
+}
+function cActive(){return MOT.on&&cur==='c'&&C.step===3&&C.tab==='suck';}
+function cLoop(ts){
+  if(!cActive()){C.raf=0;return;}
+  C.t=ts/1000;
+  if(C.sweep){ if(!C.t0) C.t0=C.t; C.thrS=0.5-0.5*Math.cos((C.t-C.t0)*2*Math.PI/7); }
+  else C.thrS+=(C.thr-C.thrS)*0.1;
+  if(!HOLD['svg-c']) $('#svg-c').innerHTML=c3svg();
+  C.raf=requestAnimationFrame(cLoop);
+}
+function cStart(){ if(!MOT.on){C.thrS=C.thr;C.sweep=false;} if(cActive()&&!C.raf) C.raf=requestAnimationFrame(cLoop); }
+const C_PARTS={float:['c1','c2','c3','c4','c5','c6','c7','c21','c18','c19'],suck:['c20','c11','c12','c13','c14','c10','c9','c8','c15','c16','c17'],ext:['p5','p6','c1','c7','c18','c15','c17','c19'],loc:['p1','p2','p6','p7','p8']};
+function carbExterior(sel){
+  let s='';
+  s+=`<rect x="78" y="4" width="276" height="52" rx="6" style="fill:var(--surface);stroke:var(--line)"/><text x="88" y="25" style="font-size:14px;fill:var(--ink)">向き：作業台に並べた模式</text><text x="88" y="46" style="font-size:14px;fill:var(--ink)">車体では前後で傾きが違う[4]</text>`;
+  for(const [x,t] of [[92,'前キャブ'],[268,'後キャブ']]){
+    s+=`<g data-part="p6" class="hit"><path d="M${x-44},120 L${x-44},92 Q${x-44},66 ${x},66 Q${x+44},66 ${x+44},92 L${x+44},120 Z" style="${hlStyle(sel==='p6','fill:var(--body2);stroke:var(--ink);stroke-width:2')}"/><rect x="${x-56}" y="120" width="112" height="72" rx="6" style="${hlStyle(sel==='p6','fill:var(--body);stroke:var(--ink);stroke-width:2')}"/></g>`;
+    s+=`<circle cx="${x}" cy="156" r="24" style="fill:var(--paper);stroke:var(--metal-dark);stroke-width:3"/><text x="${x}" y="161" text-anchor="middle" style="font-size:14px;fill:var(--muted)">空気の通路</text>`;
+    s+=`<text x="${x}" y="96" text-anchor="middle" style="font-size:14px;fill:var(--ink)">負圧室カバー</text>`;
+    s+=`<g data-part="c7" class="hit"><path d="M${x-48},192 L${x+48},192 L${x+42},250 Q${x},262 ${x-42},250 Z" style="${hlStyle(sel==='c7','fill:var(--surface);stroke:var(--ink);stroke-width:2')}"/></g>`;
+    s+=`<text x="${x}" y="228" text-anchor="middle" style="font-size:14px;fill:var(--ink)">フロート室</text>`;
+    s+=`<g data-part="c18" class="hit"><rect x="${x+20}" y="250" width="10" height="12" style="${hlStyle(sel==='c18','fill:var(--metal-dark);stroke:var(--ink)')}"/></g>`;
+    s+=`<g data-part="c17" class="hit"><rect x="${x-70}" y="132" width="14" height="18" rx="3" style="${hlStyle(sel==='c17','fill:var(--metal-dark);stroke:var(--ink)')}"/></g>`;
+    s+=`<g data-part="c15" class="hit"><circle cx="${x+50}" cy="172" r="8" style="${hlStyle(sel==='c15','fill:var(--metal);stroke:var(--ink);stroke-width:1.5')}"/></g>`;
+    s+=`<g data-part="c19" class="hit"><path d="M${x-30},200 L${x-30},296" style="${hlStyle(sel==='c19','fill:none;stroke:var(--line);stroke-width:5;stroke-dasharray:6 4')}"/></g>`;
+    s+=`<text x="${x}" y="286" text-anchor="middle" style="font-size:15px;font-weight:700;fill:var(--ink)">${t}</text>`;
+  }
+  // choke cable split
+  s+=`<path d="M22,141 L10,141 L10,330 M198,141 L186,141 L186,316 L10,316" style="fill:none;stroke:var(--ink);stroke-width:2"/><text x="16" y="346" style="font-size:14px;fill:var(--ink)">チョークケーブル（途中で2本に分かれる）[8]</text>`;
+  // fuel feed
+  s+=`<g data-part="c1" class="hit"><circle cx="140" cy="196" r="5" style="fill:var(--fuel-fill);stroke:var(--ink)"/><circle cx="220" cy="196" r="5" style="fill:var(--fuel-fill);stroke:var(--ink)"/></g>`;
+  s+=`<g data-part="p5" class="hit"><path d="M145,196 L215,196 M180,196 L180,236" style="${hlStyle(sel==='p5','fill:none;stroke:var(--ink);stroke-width:9')}"/><path d="M145,196 L215,196 M180,196 L180,236" style="fill:none;stroke:var(--fuel-fill);stroke-width:5"/></g>`;
+  s+=`<path d="M180,262 L180,238" style="stroke:var(--fuel);stroke-width:3" marker-end="url(#arF)"/><text x="180" y="278" text-anchor="middle" style="font-size:14px;fill:var(--muted)">↑ホース④</text>`;
+  s+=`<text x="4" y="370" style="font-size:14px;fill:var(--danger)">灰色の破線＝エアベントのチューブ（行き先未確認）</text>`;
+  const M=(id,x,y,lx,ly)=>marker(id,x,y,sel,lx,ly);
+  s+=M('p6',180,100,136,110)+M('p5',210,236,184,220)+M('c1',180,172,142,194)+M('c7',92,204)+M('c18',138,262,114,256)+M('c17',60,114,52,134)+M('c15',330,190,318,176)+M('c19',86,308,62,296);
+  s+=selLabel(sel,4,394);
+  return s;
+}
+function renderC(){
+  const svg=$('#svg-c'); let s=''; let cap=''; let txt='';
+  let parts;
+  $('#c-view3-tabs').hidden=C.step!==3;
+  $('#c-suck-ctl').hidden=!(C.step===3&&C.tab==='suck');
+  if(C.step===1){
+    svg.setAttribute('viewBox','0 0 360 262');
+    parts=C_PARTS.loc; if(C.sel&&!parts.includes(C.sel)) C.sel=null;
+    s=bikeShapes({sel:C.sel});
+    s+=`<rect x="136" y="92" width="92" height="56" rx="6" style="fill:none;stroke:var(--danger);stroke-width:3;stroke-dasharray:6 3"/><text x="232" y="158" style="font-size:15px;font-weight:700;fill:var(--danger)">この部分</text>`;
+    const sel=C.sel; s+=marker('p1',180,34,sel,180,62)+marker('p2',110,108,sel,146,101)+marker('p7',276,112,sel,216,108)+marker('p6',206,168,sel,196,132)+marker('p8',82,132,sel,120,146)+selLabel(sel,4,22);
+    cap='車体の左側面。赤い枠がキャブの場所'; txt='キャブは前後2つのシリンダーの間（Vバンクの内側）にあり、上にエアクリーナー⑦、そのさらに上に燃料タンク①があります<a class="src" href="#src4">[4]</a>。キャブの出口は、それぞれのシリンダーの吸気口（Vの内側）につながります。';
+  } else if(C.step===2){
+    svg.setAttribute('viewBox','0 0 360 400');
+    parts=C_PARTS.ext; if(C.sel&&!parts.includes(C.sel)) C.sel=null;
+    s=bikeLocator(2,-2,0.2)+carbExterior(C.sel);
+    cap='キャブ2個の外形（模式）。左上の小図の赤枠が位置';
+    txt='燃料ホース④は、前後キャブの間の燃料継手⑤で分かれて、前後のキャブへ入ります<a class="src" href="#src18">[18・6-16]</a>。チョークレバーのケーブルは前後キャブのバイスターターバルブC17を動かします<a class="src" href="#src18">[18・6-6]</a><a class="src" href="#src18">[18・6-18]</a>。エアベントチューブC19は前後キャブに1本ずつ出ています<a class="src" href="#src18">[18・6-17]</a>。外形の細部（入口やねじの位置）は模式です。';
+  } else {
+    svg.setAttribute('viewBox','0 0 360 470');
+    parts=C_PARTS[C.tab]; if(C.sel&&!parts.includes(C.sel)) C.sel=null;
+    s=c3svg();
+    cap='1個の断面（模式）。空気が左→右に流れる向きに回して描いています。左上の小図の赤枠が位置';
+    if(C.tab==='float') txt=`<b>フロート室の動き</b>：燃料は入口C1からシートC2を通ってフロート室C7に入ります。油面が上がるとフロートC6が浮き、支点C5のまわりに回って、アームC4がフロートバルブC3を押し上げます。先端がシートC2に当たると流入が止まります。燃料が使われて油面が下がると、フロートが下がってバルブが開き、また補給されます<a class="src" href="#src11">[11]</a>。この動きはD章で確かめられます。<br><span class="note">フロート室の部品（フロート・フロートピン・フロートバルブ・バルブシート・ドレンスクリュー）はマニュアルで確認しました<a class="src" href="#src18">[18・6-11]</a><a class="src" href="#src18">[18・6-13]</a>。エアベントC19の通路の位置、ドレンC18の位置は模式です。マニュアルの燃料系の章にキャブのオーバーフロー管は出てこないため、描いていません。</span>`;
+    else txt=`<ol class="steps" style="margin:0"><li>フロート室の油面には、エアベントを通じて大気圧がかかっています。</li><li>エンジンが吸うと、空気はピストンの下の細い所（ベンチュリC20）を速く流れ、そこの圧力が大気圧より下がります。</li><li>この圧力差で、燃料はメインジェットC8→ニードルジェットC9を押し上げられ、ジェットニードルC10とのすき間から空気の流れへ出て霧になります。</li><li>スロットルC15を開けると空気が増えてベンチュリの圧力がさらに下がります。ピストン底の穴でつながる負圧室C13の圧力も下がり、大気側の通路C14でつながるダイヤフラムC12の下との差で、ピストンC11が持ち上がります。針も上がり、細い部分がニードルジェットに来て燃料が増えます<a class="src" href="#src14">[14]</a>。</li><li>スロットルがほぼ閉じている時は、スロットルの下流側が低圧になり、スロー系C16の小さな出口から燃料が出ます。</li><li>チョークレバーを引くと、バイスターターバルブC17が開き、別の通路から燃料を多く出して混合気を濃くします<a class="src" href="#src18">[18・6-6]</a><a class="src" href="#src18">[18・6-2]</a>。</li></ol><p class="note">ピストンの上がり方は、実際にはスロットル開度だけでなく回転数や負荷でも変わります。ここでは開度に合わせて簡略に描いています。VD10にはこのほかに、ダイヤフラム式の「エアカットバルブ」があります<a class="src" href="#src18">[18・6-9]</a>が、マニュアルに働きの説明がないため図には入れていません。通路の形は模式です。</p>`;
+  }
+  svg.innerHTML=s; $('#c-cap').textContent=cap; $('#c-text').innerHTML=txt;
+  $('#c-parts').innerHTML=chipsHTML(parts,C.sel);
+  $('#c-info').innerHTML=C.sel?infoCard(C.sel):'<p class="note">番号か部品名をタップすると、図の部品が強調され、名前・役割・つながる相手が出ます。</p>';
+  $$('#c-step button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===C.step));
+  $$('#c-tab button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===C.tab));
+  $$('#c-thr button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v==='sweep'?C.sweep:(!C.sweep&&+b.dataset.v===C.thr)));
+  cStart();
+  $$('#c-st button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.v===C.starter));
+}
+
+/* ---------------- D 章（定性的な模型） ---------------- */
+const FILL=0.25, CONS=0.06, HOSE=0.12, DT=0.05;
+const PRESETS={
+ p1:{engine:'run',lever:'ON',vac:'ok',fv:'ok',L:0.6},
+ p2:{engine:'stop',lever:'RES',vac:'bad',fv:'ok',L:0.6},
+ p3:{engine:'stop',lever:'RES',vac:'bad',fv:'debris',L:0.95},
+ p4:{engine:'stop',lever:'RES',vac:'ok',fv:'debris',L:0.95},
+ p5:{engine:'run',lever:'OFF',vac:'ok',fv:'ok',L:0.97}
+};
+const D={ph:0,op:0,preset:'p1',engine:'run',lever:'ON',vac:'ok',fv:'ok',L:0.55,H:1,inflow:0,out:0,cons:0,t:0,stalled:false,playing:false,timer:null,sel:null};
+function upstreamOpen(){return D.lever!=='OFF'&&(D.engine==='run'||D.vac==='bad');}
+function loadPreset(k){Object.assign(D,PRESETS[k]);D.preset=k;D.ph=0;D.op=0;D.H=1;D.t=0;D.stalled=false;D.inflow=0;D.out=0;D.cons=0;step(0);}
+function step(dt){
+  const g=floatGeom(D.L,D.fv); const up=upstreamOpen();
+  if(up) D.H=1;
+  let inflow=D.H>0?FILL*g.open:0;
+  if(!up&&dt>0){const use=Math.min(D.H*HOSE,inflow*dt); D.H-=use/HOSE; inflow=use/dt; if(D.H<1e-4)D.H=0;}
+  let cons=0;
+  if(D.engine==='run'){ if(D.L>L_JET) cons=CONS; else {D.engine='stop';D.stalled=true;} }
+  let L=D.L+(inflow-cons)*dt, out=0;
+  if(L>L_FULL){ out=dt>0?(L-L_FULL)/dt:0; L=L_FULL; }
+  D.L=Math.max(0,L); D.inflow=inflow; D.cons=cons; D.out=out; D.t+=dt;
+  D.ph+=Math.min(1,inflow/FILL)*dt*45; D.op+=Math.min(1,out/0.08)*dt*30;
+  if(dt===0){ // initial display values
+    const g2=floatGeom(D.L,D.fv); D.inflow=(D.H>0?FILL*g2.open:0); D.cons=(D.engine==='run'&&D.L>L_JET)?CONS:0;
+    if(D.L>=L_FULL&&D.inflow>0) D.out=D.inflow;
+  }
+}
+function upstreamStrip(){
+  const up=upstreamOpen(); let s='';
+  s+=`<rect x="0" y="0" width="360" height="86" style="fill:var(--surface)"/>`;
+  s+=`<rect x="8" y="10" width="70" height="44" rx="8" style="fill:var(--body2);stroke:var(--ink);stroke-width:1.5"/><rect x="10" y="30" width="66" height="22" rx="4" style="fill:var(--fuel-fill);opacity:.75"/><text x="43" y="26" text-anchor="middle" style="font-size:14px;fill:var(--ink)">タンク</text>`;
+  s+=`<rect x="92" y="14" width="88" height="40" rx="6" style="fill:var(--body);stroke:var(--ink);stroke-width:1.5"/><text x="136" y="31" text-anchor="middle" style="font-size:14px;fill:var(--ink)">コック:${D.lever}</text><text x="136" y="49" text-anchor="middle" style="font-size:14px;font-weight:700;fill:${up?'var(--ok)':'var(--muted)'}">${D.lever==='OFF'?'OFFで閉':(up?(D.engine==='run'?'負圧で開':'閉じきらず開'):'負圧なし→閉')}</text>`;
+  s+=`<path d="M78,34 L92,34" style="stroke:${D.lever!=='OFF'?'var(--fuel-fill)':'var(--line)'};stroke-width:6"/>`;
+  // hose
+  s+=`<rect x="180" y="29" width="120" height="10" rx="5" style="fill:var(--paper);stroke:var(--ink);stroke-width:1.2"/><rect x="180" y="30" width="${120*D.H}" height="8" rx="4" style="fill:var(--fuel-fill)"/>`;
+  s+=`<text x="240" y="24" text-anchor="middle" style="font-size:14px;fill:var(--ink)">ホース内の燃料</text>`;
+  s+=`<text x="306" y="38" style="font-size:14px;fill:var(--ink)">→C1</text>`;
+  if(D.inflow>0.0005) s+=PJ('M182,34 L298,34',MOT.on?D.ph:0,3);
+  if(up) s+=`<path d="M190,58 L290,58" style="stroke:var(--fuel);stroke-width:2.5" marker-end="url(#arF)"/><text x="190" y="78" style="font-size:14px;fill:var(--fuel)">上流から補給できる</text>`;
+  else s+=`<text x="190" y="72" style="font-size:14px;fill:var(--muted)">上流は閉（残りだけ）</text>`;
+  s+=`<text x="8" y="76" style="font-size:14px;fill:var(--muted)">エンジン：${D.engine==='run'?'回転中':(D.stalled?'燃料不足で停止':'停止')}</text>`;
+  s+=`<line x1="0" y1="88" x2="360" y2="88" style="stroke:var(--line);stroke-width:2"/>`;
+  return s;
+}
+function renderD(){
+  const g=floatGeom(D.L,D.fv); const full=D.L>=L_FULL-1e-6; const up=upstreamOpen();
+  let s=upstreamStrip();
+  s+=`<g transform="translate(0 90)">`+carbSection({mode:'d',L:D.L,fv:D.fv,thr:0,starter:false,inflow:D.inflow,out:D.out,cons:D.cons,H:D.H,sel:D.sel,running:D.engine==='run',t:MOT.on?D.t:0,ph:MOT.on?D.ph:0,op:MOT.on?D.op:0})+bikeLocator(2,-2,0.24)+`</g>`;
+  s+=selLabel(D.sel,4,554);
+  $('#svg-d').innerHTML=s;
+  const pill=(t,c)=>`<span class="state-pill ${c}">${t}</span>`;
+  let lvl= D.L<L_JET?'低い（メインジェットの口より下）':D.L<0.9?'規定より低い':D.L<=1.03?'規定付近':full?'満杯':'規定より高い';
+  let fl= D.fv==='sunk'?'燃料が入って浮かず、下がったまま':g.contact?(D.fv==='debris'?'上がっている（異物に当たって止まる）':'上がりきってバルブを押し上げている'):(g.phi<=PHI_MIN+1e-6?'下限まで下がっている（油面が低い）':'油面に合わせて動いている');
+  let vl;
+  if(g.contact&&D.fv==='ok') vl=pill('閉','st-closed')+' 先端がシートに密着';
+  else if(g.contact&&D.fv==='debris') vl=pill('閉じきれない','st-warn')+' 押し上げられているが、異物ですき間が残る';
+  else if(g.open>=0.99) vl=pill('全開','st-open')+' フロートが下がっている';
+  else if(g.open>=0.5) vl=pill('開','st-open')+(D.inflow>0.0005?' 燃料が入り油面が上がるにつれ閉じる方向へ':' 油面が下がり、フロートとともに下がっている');
+  else vl=pill('少し開','st-open')+(D.engine==='run'?' 使われた分だけ少し開いている':' シートに近づいている');
+  let inf= D.inflow<0.0005?pill('なし','st-closed'):((D.inflow/FILL)<0.5?pill('少し','st-open'):pill('多い','st-open'));
+  let outT= full&&D.out>0.0005?pill('あふれている','st-warn')+' ニードルジェットなどからベンチュリ→エンジン側へ<a class="src" href="#src10">[10]</a><a class="src" href="#src11">[11]</a>。エアベント側へも出得る（行き先未確認）':'なし';
+  $('#d-status').innerHTML=`<dt>エンジン</dt><dd>${D.engine==='run'?'回転中（燃料を使い、負圧が出る）':(D.stalled?pill('燃料不足で停止','st-warn'):'停止（燃料を使わない・負圧なし）')}</dd><dt>上流</dt><dd>${up?pill('開','st-open'):pill('閉','st-closed')} ${D.lever==='OFF'?'レバーOFF':(D.engine==='run'?`${D.lever}＋エンジンの負圧で開`:(D.vac==='bad'?'停止中だが負圧作動部の弁が閉じきらない':'停止中で負圧なし→ばねで閉'))}</dd>
+  <dt>ホース</dt><dd>${D.H>=0.999?'燃料で満ちている':D.H>0?'残りが減っている':'残りが入り切った'}</dd>
+  <dt>油面</dt><dd>${lvl}</dd>
+  <dt>フロート</dt><dd>${fl}</dd>
+  <dt>フロートバルブ</dt><dd>${vl}</dd>
+  <dt>入口の流れ</dt><dd>${inf}</dd>
+  <dt>あふれ</dt><dd>${outT}</dd>`;
+  let why='';
+  if(D.stalled&&D.engine==='stop') why='上流が閉じて補給がなくなり、フロート室の燃料が使われて減りました。油面がメインジェットの口より下がり、エンジンが止まりました。フロート室の燃料は一度に消えず、使った分ずつ減ります。';
+  else if(full&&D.out>0.0005) why=`フロートは上がっていますが${D.fv==='debris'?'、バルブとシートの間の異物ですき間が残り':'、浮かないためバルブが開いたままで'}、上流から燃料が入り続けています。フロート室が満杯になり、あふれた燃料が通路からベンチュリへ出て、エンジン側へ流れています。${D.engine==='stop'?'停車中は、吸気バルブが開いているシリンダーにたまることがあります（E章）。':''}`;
+  else if(D.inflow<0.0005&&up&&g.contact&&D.fv==='ok') why='油面が上がってフロートが浮き、フロートバルブがシートに密着したので、上流が開いていても入口の流れは止まっています。燃料が使われて油面が下がれば、また開きます。';
+  else if(D.inflow<0.0005&&!up&&D.H===0) why=D.fv==='ok'?'上流が閉じ、ホースに残っていた燃料も入り切りました。フロート室の燃料はそのまま残っています。':'バルブは閉じきれませんが、上流が閉じてホースの残りも入り切ったので、流入は止まりました。油面は少し上がったところで止まっています（負圧作動部が正常に働いた場合）。';
+  else if(D.inflow<0.0005&&!up&&g.contact) why='上流は閉じており、フロートバルブも閉じています。流入はありません。';
+  else if(D.inflow>0.0005&&!up) why='上流は閉じていますが、ホースに残った燃料がフロート室へ入っています。残りが尽きれば止まります。';
+  else if(D.engine==='run'&&g.open<0.99&&g.open>0) why='エンジンが燃料を少しずつ使うので、フロートがわずかに下がってバルブが少し開き、使った分だけ補給されています。油面はほぼ一定に保たれます。';
+  else if(D.inflow>0.0005) why='油面が低いのでフロートが下がり、バルブが開いています。燃料が入って油面が上がるにつれ、フロートが浮いてバルブが閉じる方向へ動きます。';
+  else why='この条件では流入も消費もありません。';
+  $('#d-why').innerHTML=why;
+  $$('#d-preset button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===D.preset));
+  for(const k of ['engine','lever','vac','fv']) $$('#d-'+k+' button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===D[k]));
+  $('#d-play').textContent=D.playing?'⏸ 止める':'▶ 進める';
+}
+function play(on){
+  D.playing=on; clearInterval(D.timer); D.timer=null;
+  if(on) D.timer=setInterval(()=>{step(DT); if(!HOLD['svg-d']) renderD(); if(D.t>60){play(false);renderD();}},50);
+  renderD();
+}
+
+/* ---------------- E 章 ---------------- */
+const E={sel:null};
+const E_PARTS=['e1','e2','e3','e4','e4a','e4b','e5','e6'];
+function renderE(){
+  const sel=E.sel; let s=''; const FF='var(--fuel-fill)';
+  // tank
+  s+=`<path d="M60,40 Q60,18 90,16 L270,16 Q300,18 300,40 L300,98 L60,98 Z" style="fill:var(--body2);stroke:var(--ink);stroke-width:2"/><rect x="62" y="52" width="236" height="44" style="fill:${FF};opacity:.7"/>`;
+  s+=`<rect x="166" y="8" width="28" height="10" rx="3" style="fill:var(--metal-dark)"/><text x="180" y="44" text-anchor="middle" style="font-size:15px;fill:var(--ink)">燃料タンク①</text><text x="200" y="12" style="font-size:14px;fill:var(--muted)">給油口</text>`;
+  // tank drain (e6)
+  s+=`<path d="M166,10 C60,2 30,20 30,120 L30,196" style="fill:none;stroke:var(--ink);stroke-width:5"/><path d="M166,10 C60,2 30,20 30,120 L30,196" style="fill:none;stroke:var(--paper);stroke-width:2"/><text x="36" y="214" style="font-size:14px;fill:var(--muted)">車体の下へ</text>`;
+  // cock
+  s+=`<rect x="160" y="98" width="40" height="44" rx="5" style="fill:var(--body);stroke:var(--ink);stroke-width:2"/><rect x="200" y="106" width="34" height="28" rx="4" style="fill:var(--surface);stroke:var(--vac);stroke-width:1.8"/>`;
+  s+=`<text x="120" y="126" text-anchor="end" style="font-size:14px;fill:var(--ink)">コック②</text>`;
+  s+=`<path d="M234,120 L300,120" style="stroke:var(--vac);stroke-width:5"/><path d="M234,120 L300,120" style="stroke:var(--paper);stroke-width:1.5"/><text x="302" y="116" style="font-size:14px;fill:var(--muted)">負圧</text><text x="302" y="132" style="font-size:14px;fill:var(--muted)">ホース③</text>`;
+  // hose to T
+  s+=`<path d="M180,142 L180,208 M90,210 L270,210 M90,210 L90,244 M270,210 L270,244" style="fill:none;stroke:var(--ink);stroke-width:10"/><path d="M180,142 L180,208 M90,210 L270,210 M90,210 L90,244 M270,210 L270,244" style="fill:none;stroke:${FF};stroke-width:6"/>`;
+  s+=`<text x="188" y="178" style="font-size:14px;fill:var(--ink)">ホース④</text><text x="196" y="234" style="font-size:14px;fill:var(--ink)">燃料継手⑤</text>`;
+  // carbs
+  for(const [x,t] of [[90,'前キャブ⑥'],[270,'後キャブ⑥']]){
+    s+=`<rect x="${x-60}" y="244" width="120" height="34" rx="4" style="fill:var(--body);stroke:var(--ink);stroke-width:1.5"/><rect x="${x-60}" y="252" width="120" height="18" style="fill:var(--paper)"/>`;
+    s+=`<path d="M${x-50},278 L${x+50},278 L${x+44},330 Q${x},340 ${x-44},330 Z" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.5"/><rect x="${x-44}" y="300" width="88" height="28" style="fill:${FF};opacity:.7"/><rect x="${x-30}" y="292" width="40" height="16" rx="7" style="fill:var(--surface);stroke:var(--ink);stroke-width:1.2"/>`;
+    s+=`<text x="${x}" y="266" text-anchor="middle" style="font-size:14px;font-weight:700;fill:var(--ink)">${t}</text>`;
+    s+=`<rect x="${x+18}" y="330" width="8" height="10" style="fill:var(--metal-dark)"/>`;
+    // vent tube
+    s+=`<path d="M${x+40},284 L${x+58},284 L${x+58},372" style="fill:none;stroke:var(--line);stroke-width:4;stroke-dasharray:6 4"/>`;
+  }
+  // engine
+  s+=`<rect x="20" y="410" width="320" height="110" rx="12" style="fill:var(--body);stroke:var(--metal-dark);stroke-width:2"/><text x="36" y="436" style="font-size:15px;font-weight:700;fill:var(--ink)">エンジン（シリンダー⑧・クランクケース）</text>`;
+  s+=`<rect x="40" y="480" width="280" height="30" rx="6" style="fill:var(--oil);opacity:.5"/><text x="52" y="501" style="font-size:14px;fill:var(--ink)">エンジンオイル⑯</text>`;
+  s+=`<path d="M90,278 C60,330 60,380 90,410 M270,278 C300,330 300,380 270,410" class="mv" style="fill:none;stroke:var(--air);stroke-width:3;stroke-dasharray:6 4" marker-end="url(#arA)"/><text x="300" y="392" style="font-size:14px;fill:var(--muted)">吸気口へ</text>`;
+  // overflow routes
+  const on4=sel==='e4'||sel==='e4a'||sel==='e4b';
+  s+=`<path d="M112,272 C118,320 120,370 120,406" class="${on4?'mv8':''}" style="fill:none;stroke:var(--danger);stroke-width:${on4?3.5:2.5};stroke-dasharray:5 3" marker-end="url(#arD)"/>`;
+  s+=`<path d="M148,372 L148,396" class="${on4?'mv8':''}" style="fill:none;stroke:var(--danger);stroke-width:${on4?3.5:2.5};stroke-dasharray:5 3" marker-end="url(#arD)"/><text x="154" y="390" style="font-size:14px;fill:var(--danger)">行き先未確認</text>`;
+  s+=`<text x="136" y="456" style="font-size:14px;fill:var(--danger)">吸気バルブが開いた</text><text x="136" y="474" style="font-size:14px;fill:var(--danger)">シリンダーに入り得る</text>`;
+  // highlight areas
+  const ring=(id,cx,cy,r)=>`<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:none;stroke:${sel===id?'var(--hl)':'var(--danger)'};stroke-width:${sel===id?4:2};stroke-dasharray:${sel===id?'none':'4 3'}"/>`;
+  s+=ring('e1',180,100,16)+ring('e2',217,120,18)+ring('e3',180,210,16)+ring('e4',78,296,14)+ring('e5',104,334,14)+ring('e6',30,196,12);
+  const M=(id,x,y,lx,ly)=>marker(id,x,y,sel,lx,ly);
+  s+=M('e1',136,84,164,96)+M('e2',256,154,226,134)+M('e3',132,176,170,206)+M('e4',18,296,64,296)+M('e4a',92,386,116,396)+M('e4b',186,356,152,372)+M('e5',40,358,92,340)+M('e6',30,236,30,208);
+  s+=selLabel(sel,4,536);
+  $('#svg-e').innerHTML=s;
+  $('#e-parts').innerHTML=chipsHTML(E_PARTS,sel);
+  $('#e-info').innerHTML=sel?infoCard(sel):'<p class="note">E1～E6をタップすると、いつ漏れるか・OFFで止まるか・見分ける手がかりが出ます。</p>';
+}
+
+/* ---------------- 章の切り替え ---------------- */
+const CH={a:()=>{renderA();renderStroke();},b:renderB,c:renderC,d:renderD,e:renderE,s:()=>{}};
+let cur='a';
+function show(ch,scroll){
+  if(!CH[ch]) ch='a';
+  if(cur==='d'&&ch!=='d') play(false);
+  if(ch!=='a') stPlay(false);
+  cur=ch;
+  $$('section.ch').forEach(sec=>sec.hidden=sec.id!=='ch-'+ch);
+  $$('#nav button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ch===ch));
+  CH[ch]();
+  if(ch==='a'&&MOT.on&&!ST.playing) stPlay(true);
+  if(scroll){ const n=$('#nav'); window.scrollTo({top:n.getBoundingClientRect().top+window.scrollY-8}); }
+}
+$('#nav').addEventListener('click',e=>{const b=e.target.closest('button');if(b)show(b.dataset.ch,true);});
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){show(g.dataset.go,true);return;}
+  const a=e.target.closest('a.src'); if(a){e.preventDefault(); show('s'); const t=document.querySelector(a.getAttribute('href')); if(t){t.scrollIntoView({block:'center'}); t.style.outline='3px solid var(--hl)'; setTimeout(()=>t.style.outline='',1600);} return;}
+});
+// segmented controls
+function seg(id,fn){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(b)fn(b.dataset.v);});}
+seg('#a-layer',v=>{A.layer=v;A.sel=null;renderA();});
+seg('#st-sel',v=>{stPlay(false);ST.th=(+v)*180+90;renderStroke();});
+$('#st-play').addEventListener('click',()=>{if(!MOT.on)setMotion(true); stPlay(!ST.playing);});
+seg('#b-lever',v=>{B.lever=v;renderB();bAnim();}); seg('#b-engine',v=>{B.engine=v;renderB();bAnim();}); seg('#b-tank',v=>{B.tank=v;renderB();bAnim();}); seg('#b-vac',v=>{B.vac=v;renderB();bAnim();});
+seg('#c-step',v=>{C.step=+v;C.sel=null;renderC();}); seg('#c-tab',v=>{C.tab=v;C.sel=null;renderC();});
+seg('#c-thr',v=>{ if(v==='sweep'){ if(!MOT.on) setMotion(true); C.sweep=!C.sweep; C.t0=0; if(!C.sweep) C.thr=Math.round(C.thrS*2)/2; } else {C.sweep=false; C.thr=+v; if(!MOT.on) C.thrS=C.thr;} renderC();}); seg('#c-st',v=>{C.starter=+v;renderC();});
+seg('#d-preset',v=>{loadPreset(v);play(true);});
+seg('#d-engine',v=>{D.engine=v;D.stalled=false;D.preset='';step(0);renderD();}); seg('#d-lever',v=>{D.lever=v;D.preset='';step(0);renderD();});
+seg('#d-vac',v=>{D.vac=v;D.preset='';step(0);renderD();}); seg('#d-fv',v=>{D.fv=v;D.preset='';step(0);renderD();});
+$('#d-play').addEventListener('click',()=>play(!D.playing));
+$('#d-step').addEventListener('click',()=>{play(false);for(let i=0;i<10;i++)step(DT);renderD();});
+$('#d-reset').addEventListener('click',()=>{play(false);loadPreset(D.preset||'p1');renderD();});
+// part selection (svg + chips)
+const SELMAP={'svg-a':[A,renderA],'a-parts':[A,renderA],'svg-b':[B,renderB],'b-parts':[B,renderB],'svg-c':[C,renderC],'c-parts':[C,renderC],'svg-d':[D,renderD],'svg-e':[E,renderE],'e-parts':[E,renderE]};
+for(const id of Object.keys(SELMAP)){
+  document.getElementById(id).addEventListener('click',e=>{
+    const t=e.target.closest('[data-part]'); if(!t) return;
+    const [obj,fn]=SELMAP[id]; const p=t.dataset.part;
+    obj.sel=obj.sel===p?null:p; fn();
+    const cap=e.currentTarget.closest('.fig'); if(cap&&cap.classList.contains('zoomed')) updZoomCap(cap,obj.sel);
+  });
+}
+// zoom
+function updZoomCap(fig,sel){ const c=fig.querySelector('.fig-bar .cap'); if(!c.dataset.orig) c.dataset.orig=c.innerHTML; c.innerHTML=sel&&PARTS[sel]?`<b>${PARTS[sel].no} ${PARTS[sel].name}</b>`:c.dataset.orig; }
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-zoom]'); if(!b) return;
+  const fig=b.closest('.fig'); const z=parseFloat(fig.style.getPropertyValue('--z')||'2');
+  if(b.dataset.zoom==='toggle'){
+    const on=!fig.classList.contains('zoomed'); fig.classList.toggle('zoomed',on);
+    b.textContent=on?'閉じる':'拡大'; document.documentElement.style.overflow=on?'hidden':'';
+    if(on){fig.style.setProperty('--z','2'); const sc=fig.querySelector('.fig-scroll'); requestAnimationFrame(()=>{sc.scrollLeft=(sc.scrollWidth-sc.clientWidth)/2;});}
+    else { const c=fig.querySelector('.fig-bar .cap'); if(c.dataset.orig){c.innerHTML=c.dataset.orig; delete c.dataset.orig;} }
+  } else if(b.dataset.zoom==='+') fig.style.setProperty('--z',String(Math.min(4,z+0.5)));
+  else fig.style.setProperty('--z',String(Math.max(1,z-0.5)));
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){const f=$('.fig.zoomed'); if(f) f.querySelector('[data-zoom="toggle"]').click();}});
+
+loadPreset('p1');
+setMotion(MOT.on);
+$('#motion').addEventListener('click',()=>{
+  setMotion(!MOT.on);
+  if(!MOT.on){ stPlay(false); C.sweep=false; C.thrS=C.thr; }
+  else if(cur==='a') stPlay(true);
+  CH[cur]();
+});
+for(const id of ['svg-c','svg-d']){ const el=document.getElementById(id);
+  el.addEventListener('pointerdown',()=>{HOLD[id]=true;});
+  const rel=()=>setTimeout(()=>{HOLD[id]=false;},250);
+  el.addEventListener('pointerup',rel); el.addEventListener('pointercancel',rel); }
+const h=(location.hash||'').replace('#','');
+show(['a','b','c','d','e','s'].includes(h)?h:'a',false);
+})();
+</script>
